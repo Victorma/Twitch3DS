@@ -23,6 +23,8 @@
 #define SOC_ALIGN       0x1000
 #define SOC_BUFFERSIZE  0x512000
 
+u32 __stacksize__ = 0x40000;
+
 static u32 *SOC_buffer = NULL;
 s32 sock = -1, csock = -1;
 
@@ -147,17 +149,20 @@ int main(int argc, char *argv[])
   waitForStart();
   // Register all formats and codecs
   av_register_all();
+  avformat_network_init();
 
   // Open video file
   if(avformat_open_input(&pFormatCtx, filename, NULL, NULL)!=0){
-    printf("Couldn't open file\n");
-    return -1; // Couldn't open file
+    printf("Couldn't open stream\n");
+    waitForStartAndExit();
+    return 0; // Couldn't open file
   }
 
   // Retrieve stream information
   if(avformat_find_stream_info(pFormatCtx, NULL)<0){
     printf("Couldn't find stream information\n");
-    return -1; // Couldn't find stream information
+    waitForStartAndExit();
+    return 0; // Couldn't open file
   }
 
   // Dump information about file onto standard error
