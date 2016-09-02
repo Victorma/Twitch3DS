@@ -135,14 +135,12 @@ int main(int argc, char *argv[])
   AVPacket        packet;
   int             frameFinished;
   int             numBytes;
-  uint8_t         *buffer = NULL;
 
   AVDictionary    *optionsDict = NULL;
 
   initServices();
 
   // Register all formats and codecs
-  av_register_all();
   av_log_set_level(AV_LOG_DEBUG);
 
   printf("Press start to open the file\n");
@@ -208,9 +206,6 @@ int main(int argc, char *argv[])
     // Free the packet that was allocated by av_read_frame
     av_free_packet(&packet);
   }
-
-  // Free the RGB image
-  av_free(buffer);
 
   // Free the YUV frame
   av_free(pFrame);
