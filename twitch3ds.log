@@ -1,0 +1,376 @@
+Initializing the GPU...
+Done.
+Press start to look for streaming
+Downloading http://api.twitch.tv/api/channels/yoda/access_token
+return from httpcOpenContext: 0
+return from httpcSetSSLOpt: 0
+return from httpcAddRequestHeaderField: 0
+return from httpcAddRequestHeaderField: 0
+reported size: 439
+downloaded size: 439
+http_download_result: 0
+
+Parsed!
+Downloading http://usher.twitch.tv/api/channel/hls/yoda.m3u8?player=twitchweb&token=%7b%22adblock%22%3afalse%2c%22player_type%22%3anull%2c%22platform%22%3anull%2c%22user_id%22%3anull%2c%22channel%22%3a%22yoda%22%2c%22expires%22%3a1472801139%2c%22chansub%22%3a%7b%22view_until%22%3a1924905600%2c%22restricted_bitrates%22%3a%5b%5d%7d%2c%22private%22%3a%7b%22allowed_to_view%22%3atrue%7d%2c%22privileged%22%3afalse%2c%22source_restricted%22%3afalse%2c%22https_required%22%3afalse%2c%22show_ads%22%3atrue%2c%22device_id%22%3a%221677085a4913fca7%22%7d&sig=8177aeaf4a4028034837f99e924a4827fb7c5cc7
+return from httpcOpenContext: 0
+return from httpcSetSSLOpt: 0
+return from httpcAddRequestHeaderField: 0
+return from httpcAddRequestHeaderField: 0
+reported size: 2562
+downloaded size: 2562
+http_download_result: 0
+mobile streaming: http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18
+ Press start to continue
+[http @ 0x80498c0] Setting default whitelist 'http,https,tls,rtp,tcp,udp,crypto,httpproxy'
+Failed to set close on exec
+[tcp @ 0x904c730] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x80498c0] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Range: bytes=0-
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[hls,applehttp @ 0x904aa10] Format hls,applehttp probed with size=2048 and score=100
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020247-EzQm.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x9051960] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x9050100] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020247-EzQm.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x904ffe0] Statistics: 38728 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020248-tcaJ.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020248-tcaJ.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x904c8b0] Statistics: 72568 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020249-fCvn.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020249-fCvn.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 73132 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020250-zINY.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020250-zINY.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 76328 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020251-KUcs.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020251-KUcs.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 69560 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020252-wXvP.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020252-wXvP.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 61852 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020253-FiOi.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020253-FiOi.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 32148 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020254-OSN6.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020254-OSN6.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 72004 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020255-QvhV.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020255-QvhV.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 37976 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020256-J8lC.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020256-J8lC.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 74260 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020257-Vifm.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020257-Vifm.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 67492 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020258-wvwk.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020258-wvwk.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 44556 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020259-FT7R.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020259-FT7R.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 72756 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020260-TiN6.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020260-TiN6.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 72944 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020261-mg8h.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020261-mg8h.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 78772 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020262-3f51.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020262-3f51.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 69936 bytes read, 0 seeks
+Failed to set close on exec
+[tcp @ 0x90512e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-live.m3u8?token=id=6302098458029193161,bid=23061400256,exp=1472886340,node=video-edge-c67ce8.lhr03,nname=video-edge-c67ce8.lhr03,fmt=mobile&sig=86087d6fd770df6a685bac9c70e28d1114fc9f18 HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[AVIOContext @ 0x906c940] Statistics: 425 bytes read, 0 seeks
+[hls,applehttp @ 0x904aa10] HLS request for url 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020263-VM9b.ts', offset 0, playlist 0
+Failed to set close on exec
+[tcp @ 0x90511e0] Connection to tcp://video-edge-c67ce8.lhr03.hls.ttvnw.net:80 failed: Error number 26 occurred
+[http @ 0x904f770] request: GET /hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020263-VM9b.ts HTTP/1.1
+User-Agent: Lavf/57.41.100
+Accept: */*
+Connection: close
+Host: video-edge-c67ce8.lhr03.hls.ttvnw.net
+Icy-MetaData: 1
+
+
+[hls,applehttp @ 0x904aa10] Error when loading first segment 'http://video-edge-c67ce8.lhr03.hls.ttvnw.net/hls-a083ba/yoda_23061400256_510003013/mobile/index-0000020258-wvwk.ts'
+[AVIOContext @ 0x906c940] Statistics: 35160 bytes read, 0 seeks
+[AVIOContext @ 0x9054810] Statistics: 425 bytes read, 0 seeks
+Couldn't open stream
+Press start to exit

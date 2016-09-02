@@ -21,6 +21,7 @@
 #include <libswscale/swscale.h>
 
 #include "json.h"
+#include "urlcode.h"
 
 #define SOC_ALIGN       0x1000
 #define SOC_BUFFERSIZE  0x1000000
@@ -34,78 +35,7 @@ FILE * lf;
 
 void waitForStart();
 
-static void print_depth_shift(int depth)
-{
-       int j;
-       for (j=0; j < depth; j++) {
-               printf(" ");
-       }
-}
-
-static void process_value(json_value* value, int depth);
-
-static void process_object(json_value* value, int depth)
-{
-       int length, x;
-       if (value == NULL) {
-               return;
-       }
-       length = value->u.object.length;
-       for (x = 0; x < length; x++) {
-               print_depth_shift(depth);
-               printf("object[%d].name = %s\n", x, value->u.object.values[x].name);
-               process_value(value->u.object.values[x].value, depth+1);
-       }
-}
-
-static void process_array(json_value* value, int depth)
-{
-       int length, x;
-       if (value == NULL) {
-               return;
-       }
-       length = value->u.array.length;
-       printf("array\n");
-       for (x = 0; x < length; x++) {
-               process_value(value->u.array.values[x], depth);
-       }
-}
-
-static void process_value(json_value* value, int depth)
-{
-       int j;
-       if (value == NULL) {
-               return;
-       }
-       if (value->type != json_object) {
-               print_depth_shift(depth);
-       }
-       switch (value->type) {
-               case json_none:
-                       printf("none\n");
-                       break;
-               case json_object:
-                       process_object(value, depth+1);
-                       break;
-               case json_array:
-                       process_array(value, depth+1);
-                       break;
-               case json_integer:
-                       printf("int: %10" PRId64 "\n", value->u.integer);
-                       break;
-               case json_double:
-                       printf("double: %f\n", value->u.dbl);
-                       break;
-               case json_string:
-                       printf("string: %s\n", value->u.string.ptr);
-                       break;
-               case json_boolean:
-                       printf("bool: %d\n", value->u.boolean);
-                       break;
-       }
-}
-
-Result http_download(const char *url, u8 ** output, int * output_size)
+Result http_request(const char *url, u8 ** output, int * output_size)
 {
     Result ret=0;
     httpcContext context;
@@ -320,16 +250,39 @@ void waitForStartAndExit()
   exitServices();
 }
 
+int nextLine(char ** s, char ** l)
+{
+  char * nextLine = NULL;
+
+  if(*s == NULL || **s == '\0')
+    return -1;
+
+  *l = *s;
+
+  nextLine = strchr(*s, '\n');
+  if (nextLine){
+    *nextLine = '\0';
+    *s = nextLine+1;
+  }else{
+    nextLine = strchr(*s, '\0');
+    *s = nextLine;
+  }
+
+  return 1;
+}
+
 
 int main(int argc, char *argv[])
 {
   char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
-  //char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char * url;
-  char * nothing = "nothing";
-  char ** output = &nothing;
+  char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
+  char streamname[] = "yoda";
+
+  char *url, *ptr, *line;
+  char *urlencoded;
+  char *nothing = "nothing";
+  char **output = &nothing;
   int output_size = 0;
-  char streamname[] = "YoDa";
   char filename[] = "";
   AVFormatContext *pFormatCtx = NULL;
   int             i, videoStream;
@@ -348,32 +301,38 @@ int main(int argc, char *argv[])
   // Register all formats and codecs
   av_log_set_level(AV_LOG_DEBUG);
 
-  printf("Press start to open the file\n");
+  printf("Press start to look for streaming\n");
   waitForStart();
 
   // generate url for token
   asprintf(&url, token, streamname);
   //get token response
-  printf("http_download_result: %ld\n", http_download(url, (u8 **)output, &output_size));
-
-
+  printf("http_download_result: %ld\n", http_request(url, (u8 **)output, &output_size));
   json = json_parse(*output, output_size);
+  free(*output);
   printf("\nParsed!\n");
-  process_value(json, 0);
 
-  printf("%s\n", json->u.object.values[0].value->u.string.ptr);
-  printf("%s\n", json->u.object.values[1].value->u.string.ptr);
+  urlencoded = url_encode(json->u.object.values[0].value->u.string.ptr);
+  asprintf(&url, m3u8, streamname, urlencoded, json->u.object.values[1].value->u.string.ptr);
+  free(urlencoded);
 
-  waitForStartAndExit();
-  return 0;
+  json_value_free(json);
 
+  printf("http_download_result: %ld\n", http_request(url, (u8 **)output, &output_size));
+
+  ptr = *output;
+  while(nextLine(&ptr, &line) != -1){}
+
+
+  printf("mobile streaming: %s \n Press start to continue\n", line);
+  waitForStart();
 
   // Register all formats and codecs
   av_register_all();
   avformat_network_init();
 
   // Open video file
-  if(avformat_open_input(&pFormatCtx, filename, NULL, NULL)!=0){
+  if(avformat_open_input(&pFormatCtx, line, NULL, NULL)!=0){
     printf("Couldn't open stream\n");
     waitForStartAndExit();
     return 0; // Couldn't open file
