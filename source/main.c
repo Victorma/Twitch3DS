@@ -20,13 +20,203 @@
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 
+#include "json.h"
+
 #define SOC_ALIGN       0x1000
-#define SOC_BUFFERSIZE  0x512000
+#define SOC_BUFFERSIZE  0x1000000
 
 u32 __stacksize__ = 0x40000;
 
 static u32 *SOC_buffer = NULL;
 s32 sock = -1, csock = -1;
+
+FILE * lf;
+
+void waitForStart();
+
+static void print_depth_shift(int depth)
+{
+       int j;
+       for (j=0; j < depth; j++) {
+               printf(" ");
+       }
+}
+
+static void process_value(json_value* value, int depth);
+
+static void process_object(json_value* value, int depth)
+{
+       int length, x;
+       if (value == NULL) {
+               return;
+       }
+       length = value->u.object.length;
+       for (x = 0; x < length; x++) {
+               print_depth_shift(depth);
+               printf("object[%d].name = %s\n", x, value->u.object.values[x].name);
+               process_value(value->u.object.values[x].value, depth+1);
+       }
+}
+
+static void process_array(json_value* value, int depth)
+{
+       int length, x;
+       if (value == NULL) {
+               return;
+       }
+       length = value->u.array.length;
+       printf("array\n");
+       for (x = 0; x < length; x++) {
+               process_value(value->u.array.values[x], depth);
+       }
+}
+
+static void process_value(json_value* value, int depth)
+{
+       int j;
+       if (value == NULL) {
+               return;
+       }
+       if (value->type != json_object) {
+               print_depth_shift(depth);
+       }
+       switch (value->type) {
+               case json_none:
+                       printf("none\n");
+                       break;
+               case json_object:
+                       process_object(value, depth+1);
+                       break;
+               case json_array:
+                       process_array(value, depth+1);
+                       break;
+               case json_integer:
+                       printf("int: %10" PRId64 "\n", value->u.integer);
+                       break;
+               case json_double:
+                       printf("double: %f\n", value->u.dbl);
+                       break;
+               case json_string:
+                       printf("string: %s\n", value->u.string.ptr);
+                       break;
+               case json_boolean:
+                       printf("bool: %d\n", value->u.boolean);
+                       break;
+       }
+}
+
+Result http_download(const char *url, u8 ** output, int * output_size)
+{
+    Result ret=0;
+    httpcContext context;
+    char *newurl=NULL;
+    u32 statuscode=0;
+    u32 contentsize=0;
+    u8 *buf;
+
+    printf("Downloading %s\n",url);
+    gfxFlushBuffers();
+
+    do {
+        ret = httpcOpenContext(&context, HTTPC_METHOD_GET, url, 1);
+        printf("return from httpcOpenContext: %"PRId32"\n",ret);
+        gfxFlushBuffers();
+
+        // This disables SSL cert verification, so https:// will be usable
+        ret = httpcSetSSLOpt(&context, SSLCOPT_DisableVerify);
+        printf("return from httpcSetSSLOpt: %"PRId32"\n",ret);
+        gfxFlushBuffers();
+
+        // Enable Keep-Alive connections (on by default, pending ctrulib merge)
+        // ret = httpcSetKeepAlive(&context, HTTPC_KEEPALIVE_ENABLED);
+        // printf("return from httpcSetKeepAlive: %"PRId32"\n",ret);
+        // gfxFlushBuffers();
+
+        // Set a User-Agent header so websites can identify your application
+        ret = httpcAddRequestHeaderField(&context, "User-Agent", "httpc-example/1.0.0");
+        printf("return from httpcAddRequestHeaderField: %"PRId32"\n",ret);
+        gfxFlushBuffers();
+
+        // Tell the server we can support Keep-Alive connections.
+        // This will delay connection teardown momentarily (typically 5s)
+        // in case there is another request made to the same server.
+        ret = httpcAddRequestHeaderField(&context, "Connection", "Keep-Alive");
+        printf("return from httpcAddRequestHeaderField: %"PRId32"\n",ret);
+        gfxFlushBuffers();
+
+        ret = httpcBeginRequest(&context);
+        if(ret!=0){
+            httpcCloseContext(&context);
+            if(newurl!=NULL) free(newurl);
+            return ret;
+        }
+
+        ret = httpcGetResponseStatusCode(&context, &statuscode);
+        if(ret!=0){
+            httpcCloseContext(&context);
+            if(newurl!=NULL) free(newurl);
+            return ret;
+        }
+
+        if ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308)) {
+            if(newurl==NULL) newurl = malloc(0x1000); // One 4K page for new URL
+            if (newurl==NULL){
+                httpcCloseContext(&context);
+                return -1;
+            }
+            ret = httpcGetResponseHeader(&context, "Location", newurl, 0x1000);
+            url = newurl; // Change pointer to the url that we just learned
+            printf("redirecting to url: %s\n",url);
+            httpcCloseContext(&context); // Close this context before we try the next
+        }
+    } while ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308));
+
+    if(statuscode!=200){
+        printf("URL returned status: %"PRId32"\n", statuscode);
+        httpcCloseContext(&context);
+        if(newurl!=NULL) free(newurl);
+        return -2;
+    }
+
+    // This relies on an optional Content-Length header and may be 0
+    ret=httpcGetDownloadSizeState(&context, NULL, &contentsize);
+    if(ret!=0){
+        httpcCloseContext(&context);
+        if(newurl!=NULL) free(newurl);
+        return ret;
+    }
+
+    printf("reported size: %"PRId32"\n",contentsize);
+    gfxFlushBuffers();
+
+    // Start with a single page buffer
+    buf = (u8*)malloc(contentsize);
+    if(buf==NULL){
+        httpcCloseContext(&context);
+        if(newurl!=NULL) free(newurl);
+        return -1;
+    }
+
+    // This download loop resizes the buffer as data is read.
+    ret = httpcReceiveData(&context, buf, contentsize);
+    if(ret!=0){
+        httpcCloseContext(&context);
+        if(newurl!=NULL) free(newurl);
+        free(buf);
+        return -1;
+    }
+
+    printf("downloaded size: %"PRId32"\n",contentsize);
+    gfxFlushBuffers();
+
+    httpcCloseContext(&context);
+    if (newurl!=NULL) free(newurl);
+
+    *output = buf;
+    *output_size = contentsize;
+
+    return 0;
+}
 
 void waitForStart()
 {
@@ -84,7 +274,8 @@ void initServices()
   aptInit();
   sdmcInit();
   gfxInitDefault();
-  consoleInit(GFX_BOTTOM, NULL);
+  lf = fopen("./twitch3ds.log","w+");
+  consoleInit(GFX_BOTTOM, NULL, lf);
 
   // allocate buffer for SOC service
   SOC_buffer = (u32*)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
@@ -102,12 +293,16 @@ void initServices()
   // atexit functions execute in reverse order so this runs before gfxExit
   atexit(socShutdown);
 
+	httpcInit(0); // Buffer size when POST/PUT.
+
   printf("Initializing the GPU...\n");
   printf("Done.\n");
 }
 
 void exitServices()
 {
+
+  fclose(lf);
   // Cleanup SOC
   socExit();
 
@@ -128,7 +323,14 @@ void waitForStartAndExit()
 
 int main(int argc, char *argv[])
 {
-  char filename[] = "http://video-edge-2c8ae4.iad02.hls.ttvnw.net/hls-833f94/lirik_23039948432_508662609/mobile/index-live.m3u8?token=id=2016752315297032689,bid=23039948432,exp=1472670236,node=video-edge-2c8ae4.iad02,nname=video-edge-2c8ae4.iad02,fmt=mobile&sig=b1bf82baa99b495e2c2f4532156149cf88b15863";
+  char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
+  //char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
+  char * url;
+  char * nothing = "nothing";
+  char ** output = &nothing;
+  int output_size = 0;
+  char streamname[] = "YoDa";
+  char filename[] = "";
   AVFormatContext *pFormatCtx = NULL;
   int             i, videoStream;
   AVCodecContext  *pCodecCtx = NULL;
@@ -137,6 +339,7 @@ int main(int argc, char *argv[])
   AVPacket        packet;
   int             frameFinished;
   int             numBytes;
+  json_value *    json;
 
   AVDictionary    *optionsDict = NULL;
 
@@ -147,6 +350,24 @@ int main(int argc, char *argv[])
 
   printf("Press start to open the file\n");
   waitForStart();
+
+  // generate url for token
+  asprintf(&url, token, streamname);
+  //get token response
+  printf("http_download_result: %ld\n", http_download(url, (u8 **)output, &output_size));
+
+
+  json = json_parse(*output, output_size);
+  printf("\nParsed!\n");
+  process_value(json, 0);
+
+  printf("%s\n", json->u.object.values[0].value->u.string.ptr);
+  printf("%s\n", json->u.object.values[1].value->u.string.ptr);
+
+  waitForStartAndExit();
+  return 0;
+
+
   // Register all formats and codecs
   av_register_all();
   avformat_network_init();
