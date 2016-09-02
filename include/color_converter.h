@@ -5,12 +5,11 @@
  */
 #pragma once
 
-#include "movie.h"
+#include "video.h"
 #include <3ds.h>
 
-int initColorConverter(MovieState* mvS);
+int initColorConverter(StreamState* ss);
 
-int colorConvert(MovieState* mvS);
+int colorConvert(StreamState* ss);
 
-int exitColorConvert(MovieState* mvS);
-
+int exitColorConvert(StreamState* ss);

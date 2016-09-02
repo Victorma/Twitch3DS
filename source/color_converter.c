@@ -15,13 +15,13 @@ static inline double u64_to_double(u64 value)
     return (((double) (u32) (value >> 32)) * 0x100000000ULL + (u32) value);
 }
 
-int initColorConverterSwscale(MovieState *mvS)
+int initColorConverterSwscale(StreamState *ss)
 {
     enum AVPixelFormat out_fmt = AV_PIX_FMT_BGR24;
     if (gfxGetScreenFormat(GFX_TOP) == GSP_RGBA8_OES) out_fmt = AV_PIX_FMT_BGRA;
     // initialize SWS context for software scaling
-    mvS->sws_ctx = sws_getContext(mvS->pCodecCtx->width, mvS->pCodecCtx->height, mvS->pCodecCtx->pix_fmt,
-                                  mvS->pCodecCtx->width, mvS->pCodecCtx->height, out_fmt,
+    ss->sws_ctx = sws_getContext(ss->pCodecCtx->width, ss->pCodecCtx->height, ss->pCodecCtx->pix_fmt,
+                                  ss->pCodecCtx->width, ss->pCodecCtx->height, out_fmt,
                                   0,//SWS_BILINEAR,//TODO perf comparison
                                   NULL,
                                   NULL,
@@ -29,7 +29,7 @@ int initColorConverterSwscale(MovieState *mvS)
     );
 
 
-    if (mvS->sws_ctx == NULL)
+    if (ss->sws_ctx == NULL)
     {
         printf("Couldnt initialize sws\n");
         return -1;
@@ -38,19 +38,19 @@ int initColorConverterSwscale(MovieState *mvS)
 }
 
 
-int exitColorConvertSwscale(MovieState *mvS)
+int exitColorConvertSwscale(StreamState *ss)
 {
-    sws_freeContext(mvS->sws_ctx);
+    sws_freeContext(ss->sws_ctx);
     return 0;
 }
 
 
-int colorConvertSwscale(MovieState *mvS)
+int colorConvertSwscale(StreamState *ss)
 {
     // Convert the image from its native format to RGB
-    sws_scale(mvS->sws_ctx, (uint8_t const *const *) mvS->pFrame->data,
-              mvS->pFrame->linesize, 0, mvS->pCodecCtx->height,
-              mvS->outFrame->data, mvS->outFrame->linesize);
+    sws_scale(ss->sws_ctx, (uint8_t const *const *) ss->pFrame->data,
+              ss->pFrame->linesize, 0, ss->pCodecCtx->height,
+              ss->outFrame->data, ss->outFrame->linesize);
     return 0;
 }
 
@@ -76,7 +76,7 @@ int ffmpegPixelFormatToY2R(enum AVPixelFormat pix_fmt)
     }
 }
 
-int initColorConverterY2r(MovieState *mvS)
+int initColorConverterY2r(StreamState *ss)
 {
     Result res = 0;
     res = y2rInit();
@@ -96,29 +96,29 @@ int initColorConverterY2r(MovieState *mvS)
 //        printf("is_busy %d\n",is_busy);
     } while (is_busy && tries < 100);
 
-    mvS->params.input_format = ffmpegPixelFormatToY2R(mvS->pCodecCtx->pix_fmt);
-    if (mvS->out_bpp == 3) mvS->params.output_format = OUTPUT_RGB_24;
-    else if (mvS->out_bpp == 4) mvS->params.output_format = OUTPUT_RGB_32;
-    mvS->params.rotation = ROTATION_NONE;
-    mvS->params.block_alignment = BLOCK_8_BY_8;
-    mvS->params.input_line_width = mvS->pCodecCtx->width;
-    mvS->params.input_lines = mvS->pCodecCtx->height;
-    if (mvS->params.input_lines % 8)
+    ss->params.input_format = ffmpegPixelFormatToY2R(ss->pCodecCtx->pix_fmt);
+    if (ss->out_bpp == 3) ss->params.output_format = OUTPUT_RGB_24;
+    else if (ss->out_bpp == 4) ss->params.output_format = OUTPUT_RGB_32;
+    ss->params.rotation = ROTATION_NONE;
+    ss->params.block_alignment = BLOCK_8_BY_8;
+    ss->params.input_line_width = ss->pCodecCtx->width;
+    ss->params.input_lines = ss->pCodecCtx->height;
+    if (ss->params.input_lines % 8)
     {
-        mvS->params.input_lines += 8 - mvS->params.input_lines % 8;
-        printf("Height not multiple of 8, cropping to %dpx\n", mvS->params.input_lines);
+        ss->params.input_lines += 8 - ss->params.input_lines % 8;
+        printf("Height not multiple of 8, cropping to %dpx\n", ss->params.input_lines);
     }
-    mvS->params.standard_coefficient = COEFFICIENT_ITU_R_BT_601;//TODO : detect
-    mvS->params.unused = 0;
-    mvS->params.alpha = 0xFF;
+    ss->params.standard_coefficient = COEFFICIENT_ITU_R_BT_601;//TODO : detect
+    ss->params.unused = 0;
+    ss->params.alpha = 0xFF;
 
-    res = Y2RU_SetConversionParams(&mvS->params);
+    res = Y2RU_SetConversionParams(&ss->params);
     CHECKRES();
 
     res = Y2RU_SetTransferEndInterrupt(true);
     CHECKRES();
-    mvS->end_event = 0;
-    res = Y2RU_GetTransferEndEvent(&mvS->end_event);
+    ss->end_event = 0;
+    res = Y2RU_GetTransferEndEvent(&ss->end_event);
     CHECKRES();
 
 
@@ -126,17 +126,17 @@ int initColorConverterY2r(MovieState *mvS)
 }
 
 
-int colorConvertY2R(MovieState *mvS)
+int colorConvertY2R(StreamState *ss)
 {
     Result res;
 
-    const u16 img_w = mvS->params.input_line_width;
-    const u16 img_h = mvS->params.input_lines;
+    const u16 img_w = ss->params.input_line_width;
+    const u16 img_h = ss->params.input_lines;
     const u32 img_size = img_w * img_h;
 
     size_t src_Y_size = 0;
     size_t src_UV_size = 0;
-    switch (mvS->params.input_format)
+    switch (ss->params.input_format)
     {
         case INPUT_YUV422_INDIV_8:
             src_Y_size = img_size;
@@ -159,19 +159,19 @@ int colorConvertY2R(MovieState *mvS)
             src_UV_size = img_size * 2;
             break;
     }
-    if (mvS->params.input_format == INPUT_YUV422_BATCH)
+    if (ss->params.input_format == INPUT_YUV422_BATCH)
     {
         //TODO : test it
-        assert(mvS->pFrame->linesize[0] >= src_Y_size);
-        res = Y2RU_SetSendingYUYV(mvS->pFrame->data[0], src_Y_size, img_w, mvS->pFrame->linesize[0] - src_Y_size);
+        assert(ss->pFrame->linesize[0] >= src_Y_size);
+        res = Y2RU_SetSendingYUYV(ss->pFrame->data[0], src_Y_size, img_w, ss->pFrame->linesize[0] - src_Y_size);
     }
     else
     {
-        const u8 *src_Y = mvS->pFrame->data[0];
-        const u8 *src_U = mvS->pFrame->data[1];
-        const u8 *src_V = mvS->pFrame->data[2];
-        const u16 src_Y_padding = mvS->pFrame->linesize[0] - img_w;
-        const u16 src_UV_padding = mvS->pFrame->linesize[1] - (img_w >> 1);
+        const u8 *src_Y = ss->pFrame->data[0];
+        const u8 *src_U = ss->pFrame->data[1];
+        const u8 *src_V = ss->pFrame->data[2];
+        const u16 src_Y_padding = ss->pFrame->linesize[0] - img_w;
+        const u16 src_UV_padding = ss->pFrame->linesize[1] - (img_w >> 1);
 
         res = Y2RU_SetSendingY(src_Y, src_Y_size, img_w, src_Y_padding);
         CHECKRES();
@@ -181,28 +181,28 @@ int colorConvertY2R(MovieState *mvS)
         CHECKRES();
     }
 
-    const u16 out_bpp = mvS->out_bpp;
+    const u16 out_bpp = ss->out_bpp;
     size_t rgb_size = img_size * out_bpp;
-    s16 gap = (mvS->outFrame->width - img_w) * 8 * out_bpp;
-    if (mvS->outFrame->width * 8 * out_bpp >= 0x8000)
+    s16 gap = (ss->outFrame->width - img_w) * 8 * out_bpp;
+    if (ss->outFrame->width * 8 * out_bpp >= 0x8000)
     {
         printf("This image is too wide for y2r.\n");
         return 1;
         //TODO : check at setup
     }
-    res = Y2RU_SetReceiving(mvS->outFrame->data[0], rgb_size, img_w * 8 * out_bpp, gap);
+    res = Y2RU_SetReceiving(ss->outFrame->data[0], rgb_size, img_w * 8 * out_bpp, gap);
     CHECKRES();
     res = Y2RU_StartConversion();
     CHECKRES();
     u64 beforeTick = svcGetSystemTick();
-    res = svcWaitSynchronization(mvS->end_event, 1000 * 1000 * 10);
+    res = svcWaitSynchronization(ss->end_event, 1000 * 1000 * 10);
     u64 afterTick = svcGetSystemTick();
 
 #define TICKS_PER_USEC 268.123480
 #define TICKS_PER_MSEC 268123.480
     if (res)
     {
-        printf("outdim %d unitsize %d gap %d\n", mvS->outFrame->width * 8 * out_bpp, img_w * 8 * out_bpp, gap);
+        printf("outdim %d unitsize %d gap %d\n", ss->outFrame->width * 8 * out_bpp, img_w * 8 * out_bpp, gap);
         printf("svcWaitSynchronization %lx\n", res);
     }
 //    else printf("waited %lf\n",u64_to_double(afterTick-beforeTick)/TICKS_PER_USEC);
@@ -210,7 +210,7 @@ int colorConvertY2R(MovieState *mvS)
     return 0;
 }
 
-int exitColorConvertY2R(MovieState *mvS)
+int exitColorConvertY2R(StreamState *ss)
 {
     Result res = 0;
     bool is_busy = 0;
@@ -222,39 +222,39 @@ int exitColorConvertY2R(MovieState *mvS)
 }
 
 
-int initColorConverter(MovieState *mvS)
+int initColorConverter(StreamState *ss)
 {
-    switch (mvS->convertColorMethod)
+    switch (ss->convertColorMethod)
     {
         default:
         case CONVERT_COL_SWSCALE:
-            return initColorConverterSwscale(mvS);
+            return initColorConverterSwscale(ss);
         case CONVERT_COL_Y2R:
-            return initColorConverterY2r(mvS);
+            return initColorConverterY2r(ss);
     }
 }
 
 
-int colorConvert(MovieState *mvS)
+int colorConvert(StreamState *ss)
 {
-    switch (mvS->convertColorMethod)
+    switch (ss->convertColorMethod)
     {
         default:
         case CONVERT_COL_SWSCALE:
-            return colorConvertSwscale(mvS);
+            return colorConvertSwscale(ss);
         case CONVERT_COL_Y2R:
-            return colorConvertY2R(mvS);
+            return colorConvertY2R(ss);
     }
 }
 
-int exitColorConvert(MovieState *mvS)
+int exitColorConvert(StreamState *ss)
 {
-    switch (mvS->convertColorMethod)
+    switch (ss->convertColorMethod)
     {
         default:
         case CONVERT_COL_SWSCALE:
-            return exitColorConvertSwscale(mvS);
+            return exitColorConvertSwscale(ss);
         case CONVERT_COL_Y2R:
-            return exitColorConvertY2R(mvS);
+            return exitColorConvertY2R(ss);
     }
 }

@@ -12,8 +12,8 @@ export ARCH="-march=armv6k -mtune=mpcore -mfloat-abi=hard"
 --disable-programs \
 --disable-doc \
 --disable-everything \
---enable-decoder=h264,aac,ac3,mp3 \
---enable-demuxer=h264,hls \
+--enable-decoder=h264,aac,ac3,mp3,mpegts \
+--enable-demuxer=h264,hls,mpegts \
 --enable-filter=rotate,transpose \
 --enable-protocol=file,http,hls \
 --enable-static \
