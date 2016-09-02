@@ -10,9 +10,7 @@
 
 void gpuInit();
 
-
 void gpuExit();
-
 
 void gpuRenderFrame(MovieState *mvS);
 

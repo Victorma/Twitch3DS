@@ -123,4 +123,5 @@ crashlytics-build.properties
 *.msm
 *.msp
 
-
+config.log
+config.fate

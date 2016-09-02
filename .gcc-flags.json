@@ -1,0 +1,6 @@
+{
+  "execPath": "C:/devkitPro/devkitARM/bin/arm-none-eabi-gcc.exe",
+  "gccDefaultCFlags": "-Wall -Os -mword-relocations -fomit-frame-pointer -ffast-math -march=armv6k -mtune=mpcore -mfloat-abi=hard -DARM11 -D_3DS",
+  "gccDefaultCppFlags": "-Wall -Os -mword-relocations -fomit-frame-pointer -ffast-math -march=armv6k -mtune=mpcore -mfloat-abi=hard -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11",
+  "gccIncludePaths": ".,./include,./source,C:/devkitPro/portlibs/3ds/include,C:/devkitPro/libctru/include"
+}

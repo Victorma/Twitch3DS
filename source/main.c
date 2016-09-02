@@ -18,10 +18,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-
-#include "movie.h"
-#include "video.h"
-#include "color_converter.h"
+#include <libswscale/swscale.h>
 
 #define SOC_ALIGN       0x1000
 #define SOC_BUFFERSIZE  0x512000
@@ -31,19 +28,19 @@ s32 sock = -1, csock = -1;
 
 void waitForStart()
 {
-    while (aptMainLoop())
-    {
-        gspWaitForVBlank();
-        hidScanInput();
-        u32 kDown = hidKeysDown();
-        if (kDown & KEY_START)break;
-    }
+  while (aptMainLoop())
+  {
+    gspWaitForVBlank();
+    hidScanInput();
+    u32 kDown = hidKeysDown();
+    if (kDown & KEY_START)break;
+  }
 }
 //---------------------------------------------------------------------------------
 void socShutdown() {
-//---------------------------------------------------------------------------------
-    printf("waiting for socExit...\n");
-    socExit();
+  //---------------------------------------------------------------------------------
+  printf("waiting for socExit...\n");
+  socExit();
 
 }
 
@@ -52,204 +49,178 @@ void socShutdown() {
 __attribute__((format(printf,1,2)))
 void failExit(const char *fmt, ...);
 void failExit(const char *fmt, ...) {
-//---------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------
 
-    if(sock>0) close(sock);
-    if(csock>0) close(csock);
+  if(sock>0) close(sock);
+  if(csock>0) close(csock);
 
-    va_list ap;
+  va_list ap;
 
-    printf(CONSOLE_RED);
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-    printf(CONSOLE_RESET);
-    printf("\nPress B to exit\n");
+  printf(CONSOLE_RED);
+  va_start(ap, fmt);
+  vprintf(fmt, ap);
+  va_end(ap);
+  printf(CONSOLE_RESET);
+  printf("\nPress B to exit\n");
 
-    while (aptMainLoop()) {
-        gspWaitForVBlank();
-        hidScanInput();
+  while (aptMainLoop()) {
+    gspWaitForVBlank();
+    hidScanInput();
 
-        u32 kDown = hidKeysDown();
-        if (kDown & KEY_B) exit(0);
-    }
+    u32 kDown = hidKeysDown();
+    if (kDown & KEY_B) exit(0);
+  }
 }
 
 
 void initServices()
 {   // Initialize services
-    int ret;
+  int ret;
 
-    hidInit();
-    srvInit();
-    aptInit();
-    sdmcInit();
-    gfxInitDefault();
-    consoleInit(GFX_BOTTOM, NULL);    
+  hidInit();
+  srvInit();
+  aptInit();
+  sdmcInit();
+  gfxInitDefault();
+  consoleInit(GFX_BOTTOM, NULL);
 
-    // allocate buffer for SOC service
-    SOC_buffer = (u32*)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
+  // allocate buffer for SOC service
+  SOC_buffer = (u32*)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
 
-    if(SOC_buffer == NULL) {
-        failExit("memalign: failed to allocate\n");
-    }
+  if(SOC_buffer == NULL) {
+    failExit("memalign: failed to allocate\n");
+  }
 
-    // Now intialise soc:u service
-    if ((ret = socInit(SOC_buffer, SOC_BUFFERSIZE)) != 0) {
-        failExit("socInit: 0x%08X\n", (unsigned int)ret);
-    }
+  // Now intialise soc:u service
+  if ((ret = socInit(SOC_buffer, SOC_BUFFERSIZE)) != 0) {
+    failExit("socInit: 0x%08X\n", (unsigned int)ret);
+  }
 
-    // register socShutdown to run at exit
-    // atexit functions execute in reverse order so this runs before gfxExit
-    atexit(socShutdown);
+  // register socShutdown to run at exit
+  // atexit functions execute in reverse order so this runs before gfxExit
+  atexit(socShutdown);
 
-
-
-//    gfxInit(GSP_RGBA8_OES,GSP_BGR8_OES,false);
-//    gfxInit(GSP_BGR8_OES,GSP_BGR8_OES,false);
-
-    printf("Initializing the GPU...\n");
-    printf("Done.\n");
+  printf("Initializing the GPU...\n");
+  printf("Done.\n");
 }
 
 void exitServices()
 {
-    // Cleanup SOC
-    socExit();
+  // Cleanup SOC
+  socExit();
 
-    gfxExit();
-    sdmcExit();
-    hidExit();
-    aptExit();
-    srvExit();
-
+  gfxExit();
+  sdmcExit();
+  hidExit();
+  aptExit();
+  srvExit();
 }
 
 void waitForStartAndExit()
 {
-    printf("Press start to exit\n");
-    waitForStart();
-    exitServices();
+  printf("Press start to exit\n");
+  waitForStart();
+  exitServices();
 }
 
 
 int main(int argc, char *argv[])
 {
-//    char filename[]="/test400x240-mpeg4-witch.mp4";
-//    char filename[]="/test400x240-witch.mp4";
-//    char filename[]="/test800x400-witch-900kbps.mp4";
-//    char filename[]="/test800x400-witch-1pass.mp4";
-//    char filename[]="/test800x400-witch.mp4";
-//    char filename[]="/test800x480-witch-mpeg4.mp4";
-//    char filename[]="/test320x176-karanokyoukai.mp4";
-    char filename[] = "http://video-edge-2c8ae4.iad02.hls.ttvnw.net/hls-833f94/lirik_23039948432_508662609/mobile/index-live.m3u8?token=id=2016752315297032689,bid=23039948432,exp=1472670236,node=video-edge-2c8ae4.iad02,nname=video-edge-2c8ae4.iad02,fmt=mobile&sig=b1bf82baa99b495e2c2f4532156149cf88b15863";
-    MovieState mvS;
+  char filename[] = "http://video-edge-2c8ae4.iad02.hls.ttvnw.net/hls-833f94/lirik_23039948432_508662609/mobile/index-live.m3u8?token=id=2016752315297032689,bid=23039948432,exp=1472670236,node=video-edge-2c8ae4.iad02,nname=video-edge-2c8ae4.iad02,fmt=mobile&sig=b1bf82baa99b495e2c2f4532156149cf88b15863";
+  AVFormatContext *pFormatCtx = NULL;
+  int             i, videoStream;
+  AVCodecContext  *pCodecCtx = NULL;
+  AVCodec         *pCodec = NULL;
+  AVFrame         *pFrame = NULL;
+  AVPacket        packet;
+  int             frameFinished;
+  int             numBytes;
+  uint8_t         *buffer = NULL;
 
-    initServices();
+  AVDictionary    *optionsDict = NULL;
 
-    // Register all formats and codecs
-    av_register_all();
-    av_log_set_level(AV_LOG_DEBUG);
+  initServices();
 
-    printf("Press start to open the file\n");
-    waitForStart();
-    int ret = setup(&mvS, filename);
-    if (ret)
-    {
-        waitForStartAndExit();
-        return -1;
+  // Register all formats and codecs
+  av_register_all();
+  av_log_set_level(AV_LOG_DEBUG);
+
+  printf("Press start to open the file\n");
+  waitForStart();
+  // Register all formats and codecs
+  av_register_all();
+
+  // Open video file
+  if(avformat_open_input(&pFormatCtx, filename, NULL, NULL)!=0){
+    printf("Couldn't open file\n");
+    return -1; // Couldn't open file
+  }
+
+  // Retrieve stream information
+  if(avformat_find_stream_info(pFormatCtx, NULL)<0){
+    printf("Couldn't find stream information\n");
+    return -1; // Couldn't find stream information
+  }
+
+  // Dump information about file onto standard error
+  av_dump_format(pFormatCtx, 0, argv[1], 0);
+
+  // Find the first video stream
+  videoStream=-1;
+  for(i=0; i<pFormatCtx->nb_streams; i++)
+  if(pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
+    videoStream=i;
+    break;
+  }
+  if(videoStream==-1)
+    return -1; // Didn't find a video stream
+
+  // Get a pointer to the codec context for the video stream
+  pCodecCtx=pFormatCtx->streams[videoStream]->codec;
+
+  // Find the decoder for the video stream
+  pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+  if(pCodec==NULL) {
+    fprintf(stderr, "Unsupported codec!\n");
+    return -1; // Codec not found
+  }
+  // Open codec
+  if(avcodec_open2(pCodecCtx, pCodec, &optionsDict)<0)
+    return -1; // Could not open codec
+
+  // Allocate video frame
+  pFrame=av_frame_alloc();
+
+  // Read frames and save first five frames to disk
+  i=0;
+  while(av_read_frame(pFormatCtx, &packet)>=0) {
+    // Is this a packet from the video stream?
+    if(packet.stream_index==videoStream) {
+      // Decode video frame
+      avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished,&packet);
+
+      // Did we get a video frame?
+      if(frameFinished) {
+        printf("frame!\n");
+      }
     }
 
-    printf("Press start to decompress\n");
-    waitForStart();
-    // Read frames and save first five frames to disk
-    int i = 0;
-    int frameFinished;
+    // Free the packet that was allocated by av_read_frame
+    av_free_packet(&packet);
+  }
 
-    u64 timeBeginning, timeEnd;
-    u64 timeBefore, timeAfter;
-    u64 timeDecodeTotal = 0, timeScaleTotal = 0, timeDisplayTotal = 0;
+  // Free the RGB image
+  av_free(buffer);
 
-    timeBefore = osGetTime();
-    timeBeginning = timeBefore;
-    bool stop = false;
+  // Free the YUV frame
+  av_free(pFrame);
 
-    while (av_read_frame(mvS.pFormatCtx, &mvS.packet) >= 0 && !stop)
-    {
-        // Is this a packet from the video stream?
-        if (mvS.packet.stream_index == mvS.videoStream)
-        {
+  // Close the codec
+  avcodec_close(pCodecCtx);
 
-            /*********************
-             * Decode video frame
-             *********************/
+  // Close the video file
+  avformat_close_input(&pFormatCtx);
 
-            int err = avcodec_decode_video2(mvS.pCodecCtx, mvS.pFrame, &frameFinished, &mvS.packet);
-            if (err <= 0)printf("decode error\n");
-            // Did we get a video frame?
-            if (frameFinished)
-            {
-                err = av_frame_get_decode_error_flags(mvS.pFrame);
-                if (err)
-                {
-                    char buf[100];
-                    av_strerror(err, buf, 100);
-                }
-                timeAfter = osGetTime();
-                timeDecodeTotal += timeAfter - timeBefore;
-
-                /*******************************
-                 * Conversion of decoded frame
-                 *******************************/
-                timeBefore = osGetTime();
-                colorConvert(&mvS);
-                timeAfter = osGetTime();
-
-                /***********************
-                 * Display of the frame
-                 ***********************/
-                timeScaleTotal += timeAfter - timeBefore;
-                timeBefore = osGetTime();
-
-                if (mvS.renderGpu)
-                {
-                    //gpuRenderFrame(&mvS);
-                    //gpuEndFrame();
-                }
-                else display(mvS.outFrame);
-
-                timeAfter = osGetTime();
-                timeDisplayTotal += timeAfter - timeBefore;
-
-                ++i;//New frame
-
-                hidScanInput();
-                u32 kDown = hidKeysDown();
-                if (kDown & KEY_START)
-                    stop = true; // break in order to return to hbmenu
-                if (i % 50 == 0)printf("frame %d\n", i);
-                timeBefore = osGetTime();
-            }
-
-        }
-
-        // Free the packet that was allocated by av_read_frame
-        av_free_packet(&mvS.packet);
-    }
-    timeEnd = timeBefore;
-
-    tearup(&mvS);
-
-    printf("Played %d frames in %f s (%f fps)\n",
-           i, (timeEnd - timeBeginning) / 1000.0,
-           i / ((timeEnd - timeBeginning) / 1000.0));
-    printf("\tdecode:\t%llu\t%f perframe"
-           "\n\tscale:\t%llu\t%f perframe"
-           "\n\tdisplay:\t%llu\t%f perframe\n",
-           timeDecodeTotal, timeDecodeTotal / (double) i,
-           timeScaleTotal, timeScaleTotal / (double) i,
-           timeDisplayTotal, timeDisplayTotal / (double) i);
-
-    waitForStartAndExit();
-    return 0;
+  waitForStartAndExit();
+  return 0;
 }

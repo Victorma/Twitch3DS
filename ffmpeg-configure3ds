@@ -12,10 +12,10 @@ export ARCH="-march=armv6k -mtune=mpcore -mfloat-abi=hard"
 --disable-programs \
 --disable-doc \
 --disable-everything \
---enable-decoder=mpeg4,h264,aac,ac3,mp3 \
---enable-demuxer=mov,h264 \
+--enable-decoder=h264,aac,ac3,mp3 \
+--enable-demuxer=h264,hls \
 --enable-filter=rotate,transpose \
---enable-protocol=file,http \
+--enable-protocol=file,http,hls \
 --enable-static \
 --enable-small \
 --arch=armv6k \
@@ -23,8 +23,8 @@ export ARCH="-march=armv6k -mtune=mpcore -mfloat-abi=hard"
 --disable-armv6t2 \
 --disable-neon \
 --target-os=none \
---extra-cflags=" -DARM11 -D_3DS -mword-relocations -fomit-frame-pointer -ffast-math $ARCH" \
---extra-cxxflags=" -DARM11 -D_3DS -mword-relocations -fomit-frame-pointer -ffast-math -fno-rtti -fno-exceptions -std=gnu++11 $ARCH" \
+--extra-cflags=" -DARM11 -D_3DS -I$DEVKITPRO/libctru/include -mword-relocations -fomit-frame-pointer -ffast-math $ARCH" \
+--extra-cxxflags=" -DARM11 -D_3DS -I$DEVKITPRO/libctru/include -mword-relocations -fomit-frame-pointer -ffast-math -fno-rtti -fno-exceptions -std=gnu++11 $ARCH" \
 --extra-ldflags=" -specs=3dsx.specs $ARCH -L$DEVKITARM/lib  -L$DEVKITPRO/libctru/lib  -L$DEVKITPRO/portlibs/3ds/lib -lctru " \
 --disable-bzlib \
 --disable-iconv \
