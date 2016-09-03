@@ -21,7 +21,7 @@ int initColorConverterSwscale(StreamState *ss)
     if (gfxGetScreenFormat(GFX_TOP) == GSP_RGBA8_OES) out_fmt = AV_PIX_FMT_BGRA;
     // initialize SWS context for software scaling
     ss->sws_ctx = sws_getContext(ss->pCodecCtx->width, ss->pCodecCtx->height, ss->pCodecCtx->pix_fmt,
-                                  ss->pCodecCtx->width, ss->pCodecCtx->height, out_fmt,
+                                  400, 240, out_fmt,
                                   0,//SWS_BILINEAR,//TODO perf comparison
                                   NULL,
                                   NULL,

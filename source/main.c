@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 {
   char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
   char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char streamname[] = "deadmau5";
+  char streamname[] = "summonersinnlive";
 
   char *url, *ptr, *line;
   char *urlencoded;
@@ -231,10 +231,19 @@ int main(int argc, char *argv[])
     ss.videoStream=i;
     break;
   }
-  if(ss.videoStream==-1)
-    return -1; // Didn't find a video stream
+  if(ss.videoStream==-1){
+    printf("Didn't find a video stream\n");
+    waitForStartAndExit();
+    return 0; // Couldn't open file
+  }
 
-  if (video_open_stream(&ss)) return -1;
+  if (video_open_stream(&ss)){
+    printf("Couldn't open video stream\n");
+    waitForStartAndExit();
+    return 0; // Couldn't open file
+  }else{
+    printf("Video stream opened\n");
+  }
 
   // Allocate video frame
   ss.pFrame=av_frame_alloc();
@@ -251,7 +260,9 @@ int main(int argc, char *argv[])
   if (initColorConverter(&ss) < 0)
   {
       exitColorConvert(&ss);
-      return -1;
+      printf("Couldn't init color converter\n");
+      waitForStartAndExit();
+      return 0; // Couldn't open file
   }
 
   // Read frames and save first five frames to disk
@@ -261,10 +272,19 @@ int main(int argc, char *argv[])
     // Is this a packet from the video stream?
     if(ss.packet.stream_index==ss.videoStream) {
       // Decode video frame
-      avcodec_decode_video2(ss.pCodecCtx, ss.pFrame, &frameFinished, &ss.packet);
+      err = avcodec_decode_video2(ss.pCodecCtx, ss.pFrame, &frameFinished, &ss.packet);
+      if (err <= 0)printf("decode error\n");
 
       // Did we get a video frame?
       if(frameFinished) {
+        err = av_frame_get_decode_error_flags(ss.pFrame);
+        if (err)
+        {
+            char buf[100];
+            av_strerror(err, buf, 100);
+            continue;
+        }
+
         /*******************************
          * Conversion of decoded frame
          *******************************/
@@ -274,7 +294,7 @@ int main(int argc, char *argv[])
          * Display of the frame
          ***********************/
 
-        display(ss.pFrame);
+        display(ss.outFrame);
         gfxSwapBuffers();
 
         hidScanInput();
@@ -292,9 +312,11 @@ int main(int argc, char *argv[])
 
   // Free the YUV frame
   av_free(ss.pFrame);
+  av_free(ss.outFrame);
 
   // Close the codec
   avcodec_close(ss.pCodecCtx);
+  avcodec_close(ss.pCodecCtxOrig);
 
   // Close the video file
   avformat_close_input(&ss.pFormatCtx);

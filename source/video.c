@@ -23,10 +23,6 @@ int video_open_stream(StreamState *ss)
         fprintf(stderr, "Unsupported video codec!\n");
         return -1; // Codec not found
     }
-    else
-    {
-        printf("video decoder : %s - OK\n", ss->pCodec->name);
-    }
 
     // Copy context
     ss->pCodecCtx = avcodec_alloc_context3(ss->pCodec);
@@ -48,9 +44,11 @@ void display(AVFrame *pFrame)
 {
 //    gspWaitForVBlank();
 //    gfxSwapBuffers();
+
     int i, j, c;
     const int width = 400 <= pFrame->width ? 400 : pFrame->width;
     const int height = 240 <= pFrame->height ? 240 : pFrame->height;
+    const int fheight = pFrame->height;
     if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES)
     {
         u8 *const src = pFrame->data[0];
@@ -62,7 +60,7 @@ void display(AVFrame *pFrame)
             {
                 for (c = 0; c < 3; ++c)
                 {
-                    fbuffer[3 * 240 * i + (239 - j) * 3 + c] = src[1024 * 3 * j + i * 3 + c];
+                    fbuffer[3 * 240 * i + (239 - j) * 3 + c] = src[fheight * 3 * j + i * 3 + c];
                 }
             }
         }
@@ -76,7 +74,7 @@ void display(AVFrame *pFrame)
         {
             for (j = 0; j < height; ++j)
             {
-                fbuffer[240 * i + (239 - j)] = src[1024 * j + i];
+                fbuffer[240 * i + (239 - j)] = src[fheight * j + i];
             }
         }
     }
