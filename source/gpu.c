@@ -8,16 +8,8 @@
 
 #include <libavformat/avformat.h>
 
-#include <shader_shbin.h>
+#include "vshader_shbin.h"
 
-typedef struct { float x, y, z; } vector_3f;
-typedef struct { float x, y, z, w; } vector_4f;
-
-typedef struct __attribute__((__packed__))
-{
-    vector_3f position;
-    vector_4f texpos;
-} vertex_pos_col;
 
 #define CLEAR_COLOR 0x68B0D8FF
 
@@ -30,7 +22,7 @@ typedef struct __attribute__((__packed__))
 // Used to convert textures to 3DS tiled format
 // Note: vertical flip flag set so 0,0 is top left of texture
 #define TEXTURE_TRANSFER_FLAGS \
-	(GX_TRANSFER_FLIP_VERT(1) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) | \
+	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) | \
 	GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 	GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
@@ -38,7 +30,8 @@ typedef struct __attribute__((__packed__))
 	{ 100.0f, 40.0f, 0.5f },
 	{ 300.0f, 40.0f, 0.5f },*/
 
-static const vertex_pos_col test_mesh[] =
+typedef struct { float position[3]; float texturecoord[2]; } vertex;
+static const vertex test_mesh[] =
 {
   {{200.0f, 200.0f, 0.5f}, {1.0f, 0.0f}},
   {{100.0f, 40.0f,  0.5f}, {0.0f, 1.0f}},
@@ -88,14 +81,14 @@ void gpuInit()
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 
   	// Initialize the render target
-  	C3D_RenderTarget* target = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
+    target = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
   	C3D_RenderTargetSetClear(target, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
   	C3D_RenderTargetSetOutput(target, GFX_TOP, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
     /**
     * Load our vertex shader and its uniforms
     * Check http://3dbrew.org/wiki/SHBIN for more informations about the shader binaries
     */
-    shader_dvlb = DVLB_ParseFile((u32 *) shader_shbin, shader_shbin_size);//load our vertex shader binary
+    shader_dvlb = DVLB_ParseFile((u32 *) vshader_shbin, vshader_shbin_size);//load our vertex shader binary
     shaderProgramInit(&shader);
     shaderProgramSetVsh(&shader, &shader_dvlb->DVLE[0]);
 		C3D_BindProgram(&shader);
@@ -116,14 +109,12 @@ void gpuInit()
 		// Configure buffers
 		C3D_BufInfo* bufInfo = C3D_GetBufInfo();
 		BufInfo_Init(bufInfo);
-    BufInfo_Add(bufInfo, test_data, sizeof(vertex_pos_col), 2, 0x10);
+    BufInfo_Add(bufInfo, test_data, sizeof(vertex), 2, 0x10);
 
 		env = C3D_GetTexEnv(0);
 		C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
 		C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
 		C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
-
-
 
 		gpuDisableEverything();
 }
@@ -144,32 +135,29 @@ void gpuExit()
 
 void gpuRenderFrame(StreamState *ss)
 {
-    if(!aptMainLoop())
-      return;
-
     C3D_TexInit(&tex, ss->outFrame->width, ss->outFrame->height, GPU_RGBA8);
-  	//C3D_TexSetWrap(&tex, GPU_TEXTURE_WRAP_S(1), GPU_TEXTURE_WRAP_T(1));
+    C3D_TexSetWrap(&tex, GPU_TEXTURE_WRAP_S(1), GPU_TEXTURE_WRAP_T(1));
   	C3D_TexSetFilter(&tex, GPU_LINEAR, GPU_NEAREST);
 
 		C3D_SafeDisplayTransfer ((u32 *) osConvertVirtToPhys((u32) ss->outFrame->data[0]), GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), (u32*)tex.data, GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), TEXTURE_TRANSFER_FLAGS);
 		gspWaitForPPF();
 
+
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C3D_FrameDrawOn(target);
 
-  		C3D_TexBind(GPU_TEXUNIT0, &tex);
+  		C3D_TexBind(0, &tex);
 
     //  GPUCMD_AddWrite(GPUREG_TEXUNIT0_BORDER_COLOR, 0xFFFF0000);
 
       //Display the buffers data
       C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection);
-      C3D_DrawArrays(GPU_TRIANGLES, 0, vertex_list_count);
+      C3D_DrawArrays(GPU_TRIANGLES, 0, 3);
 
   /*
       setTexturePart(test_data, 0.0, 1.0f - ss->pCodecCtx->height / (float) ss->outFrame->height,
                      ss->pCodecCtx->width / (float) ss->outFrame->width, 1.0f);*/
   //    setTexturePart(test_data,0.0,0.0,1.0,1.0);
-
 
 
 		C3D_FrameEnd(0);

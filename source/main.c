@@ -92,16 +92,17 @@ void initServices()
 {   // Initialize services
   int ret;
 
-  hidInit();
-  srvInit();
-  aptInit();
-  sdmcInit();
   gfxInitDefault();
+  printf("Initializing the GPU...\n");
+  gpuInit();
+  printf("Done.\n");
   //gfxSet3D(false);//We will not be using the 3D mode in this example
 
+  printf("Initializing the console...\n");
   lf = fopen("./twitch3ds.log","w+");
   consoleInit(GFX_BOTTOM, NULL, lf);
 
+  printf("Initializing the network...\n");
   // allocate buffer for SOC service
   SOC_buffer = (u32*)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
   if(SOC_buffer == NULL) {
@@ -118,9 +119,6 @@ void initServices()
 
 	httpcInit(0); // Buffer size when POST/PUT.
 
-  printf("Initializing the GPU...\n");
-  gpuInit();
-  printf("Done.\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -129,15 +127,9 @@ void exitServices()
 {
 
   fclose(lf);
-  // Cleanup SOC
   socExit();
-
   gpuExit();
   gfxExit();
-  sdmcExit();
-  hidExit();
-  aptExit();
-  srvExit();
 }
 // ---------------------------------------------------------------------------
 void waitForStartAndExit()
@@ -154,7 +146,7 @@ int main(int argc, char *argv[])
 {
   char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
   char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char streamname[] = "nl_Kripp";
+  char streamname[] = "ESL_CSGO";
 
   char *url, *ptr, *line, *p;
   char *urlencoded;
@@ -313,10 +305,12 @@ int main(int argc, char *argv[])
          {
              gpuRenderFrame(&ss);
          }
-         else {
+         else
+         {
            display(ss.outFrame);
            gfxSwapBuffers();
          }
+
         hidScanInput();
         u32 kDown = hidKeysDown();
         if (kDown & KEY_START)
