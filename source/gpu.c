@@ -54,6 +54,21 @@ C3D_Mtx  projection;
 DVLB_s *shader_dvlb;    //the header
 shaderProgram_s shader; //the program
 
+void setTexturePart(vertex *data, float x, float y, float u, float v)
+{
+    data[1].texturecoord[0] = u;
+    data[1].texturecoord[1]=  y;
+
+    data[2].texturecoord[0] = u;
+    data[2].texturecoord[1] = v;
+
+    data[3].texturecoord[0] = x;
+    data[3].texturecoord[1] = v;
+
+    data[0].texturecoord[0] = x;
+    data[0].texturecoord[1] = y;
+}
+
 void gpuDisableEverything()
 {
     C3D_CullFace(GPU_CULL_NONE);
@@ -143,6 +158,9 @@ void gpuRenderFrame(StreamState *ss)
 		C3D_SafeTextureCopy (ss->outFrame->data[0], GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), (u32*)tex.data, GX_BUFFER_DIM(tex.width,tex.height), tex.size, TEXTURE_TRANSFER_FLAGS);
 		gspWaitForPPF();
 
+    setTexturePart(test_data, 0.0, 1.0f - ss->pCodecCtx->height / (float) ss->outFrame->height,
+               ss->pCodecCtx->width / (float) ss->outFrame->width, 1.0f);
+
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C3D_FrameDrawOn(target);
 
@@ -153,11 +171,6 @@ void gpuRenderFrame(StreamState *ss)
       //Display the buffers data
       C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection);
       C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, 4);
-
-  /*
-      setTexturePart(test_data, 0.0, 1.0f - ss->pCodecCtx->height / (float) ss->outFrame->height,
-                     ss->pCodecCtx->width / (float) ss->outFrame->width, 1.0f);*/
-  //    setTexturePart(test_data,0.0,0.0,1.0,1.0);
 
 
 		C3D_FrameEnd(0);
