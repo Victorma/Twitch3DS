@@ -155,8 +155,9 @@ void gpuRenderFrame(StreamState *ss)
     C3D_TexSetWrap(&tex, GPU_TEXTURE_WRAP_S(1), GPU_TEXTURE_WRAP_T(1));
   	C3D_TexSetFilter(&tex, GPU_LINEAR, GPU_NEAREST);
 
-		C3D_SafeTextureCopy (ss->outFrame->data[0], GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), (u32*)tex.data, GX_BUFFER_DIM(tex.width,tex.height), tex.size, TEXTURE_TRANSFER_FLAGS);
-		gspWaitForPPF();
+    tex.data = ss->outFrame->data[0];
+		//C3D_SafeTextureCopy (ss->outFrame->data[0], GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), (u32*)tex.data, GX_BUFFER_DIM(tex.width,tex.height), tex.size, TEXTURE_TRANSFER_FLAGS);
+		//gspWaitForPPF();
 
     setTexturePart(test_data, 0.0, 1.0f - ss->pCodecCtx->height / (float) ss->outFrame->height,
                ss->pCodecCtx->width / (float) ss->outFrame->width, 1.0f);

@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 {
   char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
   char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char streamname[] = "ThijsHS";
+  char streamname[] = "ESL_TeaTime";
 
   char *url, *ptr, *line, *p;
   char *urlencoded;
