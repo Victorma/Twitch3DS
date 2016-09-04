@@ -22,9 +22,9 @@
 // Used to convert textures to 3DS tiled format
 // Note: vertical flip flag set so 0,0 is top left of texture
 #define TEXTURE_TRANSFER_FLAGS \
-	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) | \
+	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(1) | \
 	GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
-	GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
+	GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_XY))
 
 /*	{ 200.0f, 200.0f, 0.5f },
 	{ 100.0f, 40.0f, 0.5f },
@@ -33,9 +33,10 @@
 typedef struct { float position[3]; float texturecoord[2]; } vertex;
 static const vertex test_mesh[] =
 {
-  {{200.0f, 200.0f, 0.5f}, {1.0f, 0.0f}},
-  {{100.0f, 40.0f,  0.5f}, {0.0f, 1.0f}},
-  {{300.0f, 40.0f,  0.5f}, {0.0f, 0.0f}},
+  {{0.0f, 0.0f, 0.5f}, {0.0f, 0.0f}},
+  {{400.0f, 0.0f,  0.5f}, {1.0f, 0.0f}},
+  {{400.0f, 240.0f,  0.5f}, {1.0f, 1.0f}},
+  {{0.0f, 240.0f,  0.5f}, {0.0f, 1.0f}},
 };
 
 #define vertex_list_count (sizeof(test_mesh)/sizeof(test_mesh[0]))
@@ -139,9 +140,8 @@ void gpuRenderFrame(StreamState *ss)
     C3D_TexSetWrap(&tex, GPU_TEXTURE_WRAP_S(1), GPU_TEXTURE_WRAP_T(1));
   	C3D_TexSetFilter(&tex, GPU_LINEAR, GPU_NEAREST);
 
-		C3D_SafeDisplayTransfer ((u32 *) osConvertVirtToPhys((u32) ss->outFrame->data[0]), GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), (u32*)tex.data, GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), TEXTURE_TRANSFER_FLAGS);
+		C3D_SafeTextureCopy (ss->outFrame->data[0], GX_BUFFER_DIM(ss->outFrame->width,ss->outFrame->height), (u32*)tex.data, GX_BUFFER_DIM(tex.width,tex.height), tex.size, TEXTURE_TRANSFER_FLAGS);
 		gspWaitForPPF();
-
 
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C3D_FrameDrawOn(target);
@@ -152,7 +152,7 @@ void gpuRenderFrame(StreamState *ss)
 
       //Display the buffers data
       C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection);
-      C3D_DrawArrays(GPU_TRIANGLES, 0, 3);
+      C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, 4);
 
   /*
       setTexturePart(test_data, 0.0, 1.0f - ss->pCodecCtx->height / (float) ss->outFrame->height,

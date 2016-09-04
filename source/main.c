@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 {
   char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
   char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char streamname[] = "ESL_CSGO";
+  char streamname[] = "ThijsHS";
 
   char *url, *ptr, *line, *p;
   char *urlencoded;
@@ -251,6 +251,9 @@ int main(int argc, char *argv[])
 
   ss.outFrame->width = next_pow2(ss.pCodecCtx->width);
   ss.outFrame->height = next_pow2(ss.pCodecCtx->height);
+
+  printf("Width: %i OutW: %i\n", ss.pCodecCtx->width,ss.outFrame->width);
+  printf("Height: %i OutH: %i\n", ss.pCodecCtx->height,ss.outFrame->height);
   ss.renderGpu = true;
 
   if (ss.renderGpu)ss.out_bpp = 4;
