@@ -97,7 +97,7 @@ void initServices()
   aptInit();
   sdmcInit();
   gfxInitDefault();
-  gfxSet3D(false);//We will not be using the 3D mode in this example
+  //gfxSet3D(false);//We will not be using the 3D mode in this example
 
   lf = fopen("./twitch3ds.log","w+");
   consoleInit(GFX_BOTTOM, NULL, lf);
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 {
   char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
   char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char streamname[] = "riotgames";
+  char streamname[] = "nl_Kripp";
 
   char *url, *ptr, *line, *p;
   char *urlencoded;
