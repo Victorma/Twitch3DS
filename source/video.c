@@ -48,7 +48,7 @@ void display(AVFrame *pFrame)
     int i, j, c;
     const int width = 400 <= pFrame->width ? 400 : pFrame->width;
     const int height = 240 <= pFrame->height ? 240 : pFrame->height;
-    const int fheight = pFrame->height;
+    const int fwidth = pFrame->width;
     if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES)
     {
         u8 *const src = pFrame->data[0];
@@ -60,7 +60,7 @@ void display(AVFrame *pFrame)
             {
                 for (c = 0; c < 3; ++c)
                 {
-                    fbuffer[3 * 240 * i + (239 - j) * 3 + c] = src[fheight * 3 * j + i * 3 + c];
+                    fbuffer[3 * 240 * i + (239 - j) * 3 + c] = src[fwidth * 3 * j + i * 3 + c];
                 }
             }
         }
@@ -74,7 +74,7 @@ void display(AVFrame *pFrame)
         {
             for (j = 0; j < height; ++j)
             {
-                fbuffer[240 * i + (239 - j)] = src[fheight * j + i];
+                fbuffer[239 * i + (239 - j)] = src[fwidth * j + i];
             }
         }
     }

@@ -13,7 +13,7 @@ file(GLOB_RECURSE SOURCE_FILES
 )
 
 add_executable(3DAmneSic ${SOURCE_FILES})
-target_link_libraries(3DAmneSic ${FFMPEG_swresample_LIBRARY} ${FFMPEG_swscale_LIBRARY} ${FFMPEG_avformat_LIBRARY} ${FFMPEG_avcodec_LIBRARY} ${FFMPEG_avutil_LIBRARY} m 3ds::ctrulib)
+target_link_libraries(3DAmneSic ${FFMPEG_swresample_LIBRARY} ${FFMPEG_swscale_LIBRARY} ${FFMPEG_avformat_LIBRARY} ${FFMPEG_avcodec_LIBRARY} ${FFMPEG_avutil_LIBRARY} m 3ds::ctrulib m 3ds::citro3d)
 target_include_directories(3DAmneSic PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/include ${FFMPEG_INCLUDE_DIR})
 if(3DS)
     target_embed_shader(3DAmneSic data/shader.pica)

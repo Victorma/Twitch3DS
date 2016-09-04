@@ -1,5 +1,7 @@
 ###PROJECT SPECIFIC
 
+/cmake/
+
 #3DS
 *.3dsx
 *.smdh

@@ -26,6 +26,7 @@
 #include "video.h"
 #include "http.h"
 #include "util.h"
+#include "gpu.h"
 
 #define SOC_ALIGN       0x1000
 #define SOC_BUFFERSIZE  0x1000000
@@ -116,6 +117,10 @@ void initServices()
   atexit(socShutdown);
 
 	httpcInit(0); // Buffer size when POST/PUT.
+
+  printf("Initializing the GPU...\n");
+  gpuInit();
+  printf("Done.\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -127,6 +132,7 @@ void exitServices()
   // Cleanup SOC
   socExit();
 
+  gpuExit();
   gfxExit();
   sdmcExit();
   hidExit();
@@ -148,9 +154,9 @@ int main(int argc, char *argv[])
 {
   char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
   char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char streamname[] = "summonersinnlive";
+  char streamname[] = "riotgames";
 
-  char *url, *ptr, *line;
+  char *url, *ptr, *line, *p;
   char *urlencoded;
   char *nothing = "nothing";
   char **output = &nothing;
@@ -179,6 +185,7 @@ int main(int argc, char *argv[])
   free(*output);
   printf("\nParsed!\n");
 
+  for (p = streamname; *p != '\0'; ++p) *p = tolower(*p);
   urlencoded = url_encode(json->u.object.values[0].value->u.string.ptr);
   asprintf(&url, m3u8, streamname, urlencoded, json->u.object.values[1].value->u.string.ptr);
   free(urlencoded);
@@ -252,15 +259,20 @@ int main(int argc, char *argv[])
 
   ss.outFrame->width = next_pow2(ss.pCodecCtx->width);
   ss.outFrame->height = next_pow2(ss.pCodecCtx->height);
-  if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES) ss.out_bpp = 3;
+  ss.renderGpu = true;
+
+  if (ss.renderGpu)ss.out_bpp = 4;
+  else if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES) ss.out_bpp = 3;
   else if (gfxGetScreenFormat(GFX_TOP) == GSP_RGBA8_OES)ss.out_bpp = 4;
   ss.outFrame->linesize[0] = ss.outFrame->width * ss.out_bpp;
   ss.outFrame->data[0] = linearMemAlign(ss.outFrame->width * ss.outFrame->height * ss.out_bpp, 0x80);//RGBA next_pow2(width) x 1024 texture
 
+  printf("Conversion input prepared...\n");
+
   if (initColorConverter(&ss) < 0)
   {
-      exitColorConvert(&ss);
       printf("Couldn't init color converter\n");
+      exitColorConvert(&ss);
       waitForStartAndExit();
       return 0; // Couldn't open file
   }
@@ -268,6 +280,9 @@ int main(int argc, char *argv[])
   // Read frames and save first five frames to disk
   i=0;
   bool stop = false;
+
+  printf("Start decoding...\n");
+
   while(av_read_frame(ss.pFormatCtx, &ss.packet)>=0 && !stop) {
     // Is this a packet from the video stream?
     if(ss.packet.stream_index==ss.videoStream) {
@@ -294,9 +309,14 @@ int main(int argc, char *argv[])
          * Display of the frame
          ***********************/
 
-        display(ss.outFrame);
-        gfxSwapBuffers();
-
+         if (ss.renderGpu)
+         {
+             gpuRenderFrame(&ss);
+         }
+         else {
+           display(ss.outFrame);
+           gfxSwapBuffers();
+         }
         hidScanInput();
         u32 kDown = hidKeysDown();
         if (kDown & KEY_START)
@@ -320,6 +340,7 @@ int main(int argc, char *argv[])
 
   // Close the video file
   avformat_close_input(&ss.pFormatCtx);
+  exitColorConvert(&ss);
 
   waitForStartAndExit();
   return 0;
