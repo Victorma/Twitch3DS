@@ -183,11 +183,11 @@ int main(int argc, char *argv[])
 		u32 kDown = hidKeysDown();
 
 		printf("\x1b[0;0H");
-		printf("----------------------\n");
-		printf("|      Twitch3ds     |\n");
-		printf("----------------------\n");
-		printf("                      \n");
-		printf("                      \n");
+		printf("----------------------                 \n");
+		printf("|      Twitch3ds     |                 \n");
+		printf("----------------------                 \n");
+		printf("                                       \n");
+		printf("                                       \n");
 
 		switch(state)
 		{
@@ -239,6 +239,8 @@ int main(int argc, char *argv[])
             gss = getStreamSources(gsp.s[i].name);
             i = 0;
             state = STATE_PLAYING;
+          }else if(kDown & KEY_B){
+            state = STATE_GAME_SELECTING;
           }else{
 						printf("                                                 \n");
 					}
@@ -322,6 +324,9 @@ int main(int argc, char *argv[])
 					avformat_close_input(&ss.pFormatCtx);
 					exitColorConvert(&ss);
 					state = STATE_CHANNEL_SELECTING;
+					printf("                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ");
+					printf("                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ");
+					printf("                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ");
 			  }
 				break;
 
