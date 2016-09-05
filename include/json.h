@@ -273,6 +273,8 @@ void json_value_free (json_value *);
 void json_value_free_ex (json_settings * settings,
                          json_value *);
 
+json_value * json_object_find_value(json_value *, char * name);
+
 #ifdef __cplusplus
    } /* extern "C" */
 #endif

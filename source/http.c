@@ -12,18 +12,11 @@ Result http_request(const char *url, u8 ** output, int * output_size)
     u32 contentsize=0;
     u8 *buf;
 
-    printf("Downloading %s\n",url);
-    gfxFlushBuffers();
-
     do {
         ret = httpcOpenContext(&context, HTTPC_METHOD_GET, url, 1);
-        printf("return from httpcOpenContext: %ld\n",ret);
-        gfxFlushBuffers();
 
         // This disables SSL cert verification, so https:// will be usable
         ret = httpcSetSSLOpt(&context, SSLCOPT_DisableVerify);
-        printf("return from httpcSetSSLOpt: %ld\n",ret);
-        gfxFlushBuffers();
 
         // Enable Keep-Alive connections (on by default, pending ctrulib merge)
         // ret = httpcSetKeepAlive(&context, HTTPC_KEEPALIVE_ENABLED);
@@ -32,15 +25,11 @@ Result http_request(const char *url, u8 ** output, int * output_size)
 
         // Set a User-Agent header so websites can identify your application
         ret = httpcAddRequestHeaderField(&context, "User-Agent", "httpc-example/1.0.0");
-        printf("return from httpcAddRequestHeaderField: %ld\n",ret);
-        gfxFlushBuffers();
 
         // Tell the server we can support Keep-Alive connections.
         // This will delay connection teardown momentarily (typically 5s)
         // in case there is another request made to the same server.
         ret = httpcAddRequestHeaderField(&context, "Connection", "Keep-Alive");
-        printf("return from httpcAddRequestHeaderField: %ld\n",ret);
-        gfxFlushBuffers();
 
         ret = httpcBeginRequest(&context);
         if(ret!=0){
@@ -84,9 +73,6 @@ Result http_request(const char *url, u8 ** output, int * output_size)
         return ret;
     }
 
-    printf("reported size: %ld\n",contentsize);
-    gfxFlushBuffers();
-
     // Start with a single page buffer
     buf = (u8*)malloc(contentsize);
     if(buf==NULL){
@@ -103,9 +89,6 @@ Result http_request(const char *url, u8 ** output, int * output_size)
         free(buf);
         return -1;
     }
-
-    printf("downloaded size: %ld\n",contentsize);
-    gfxFlushBuffers();
 
     httpcCloseContext(&context);
     if (newurl!=NULL) free(newurl);

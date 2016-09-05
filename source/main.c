@@ -20,18 +20,22 @@
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 
-#include "json.h"
-#include "color_converter.h"
-#include "urlcode.h"
-#include "video.h"
-#include "http.h"
-#include "util.h"
 #include "gpu.h"
+#include "twitch.h"
+#include "stream.h"
 
 #define SOC_ALIGN       0x1000
 #define SOC_BUFFERSIZE  0x1000000
 
 u32 __stacksize__ = 0x40000;
+
+typedef enum
+{
+	STATE_NONE,
+  STATE_GAME_SELECTING,
+  STATE_CHANNEL_SELECTING,
+	STATE_PLAYING
+}state_t;
 
 static u32 *SOC_buffer = NULL;
 s32 sock = -1, csock = -1;
@@ -93,6 +97,12 @@ void initServices()
   int ret;
 
   gfxInitDefault();
+
+  // Register all formats and codecs
+  av_register_all();
+  avformat_network_init();
+  av_log_set_level(AV_LOG_ERROR);
+
   printf("Initializing the GPU...\n");
   gpuInit();
   printf("Done.\n");
@@ -144,200 +154,184 @@ void waitForStartAndExit()
 int main(int argc, char *argv[])
 // ---------------------------------------------------------------------------
 {
-  char token[] = "http://api.twitch.tv/api/channels/%s/access_token";
-  char m3u8[] = "http://usher.twitch.tv/api/channel/hls/%s.m3u8?player=twitchweb&token=%s&sig=%s";
-  char streamname[] = "ESL_TeaTime";
-
-  char *url, *ptr, *line, *p;
-  char *urlencoded;
-  char *nothing = "nothing";
-  char **output = &nothing;
-  int output_size = 0;
   int             i, videoStream, err;
   int             frameFinished;
-  json_value *    json;
+  char line[] ="null";
+
+  Result res = -1;
 
   StreamState  ss;
+  game_page gp;
+  game_stream_page gsp;
+  stream_sources gss;
 
   AVDictionary    *optionsDict = NULL;
 
+  state_t state = STATE_NONE;
+
   initServices();
 
-  // Register all formats and codecs
-  av_log_set_level(AV_LOG_ERROR);
+	int total = 0;
 
-  printf("Press start to look for streaming\n");
-  waitForStart();
+	// Main loop
+	while (aptMainLoop())
+	{
+		//Scan all the inputs. This should be done once for each frame
+		hidScanInput();
 
-  // generate url for token
-  asprintf(&url, token, streamname);
-  //get token response
-  printf("http_download_result: %ld\n", http_request(url, (u8 **)output, &output_size));
-  json = json_parse(*output, output_size);
-  free(*output);
-  printf("\nParsed!\n");
+		//hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
+		u32 kDown = hidKeysDown();
 
-  for (p = streamname; *p != '\0'; ++p) *p = tolower(*p);
-  urlencoded = url_encode(json->u.object.values[0].value->u.string.ptr);
-  asprintf(&url, m3u8, streamname, urlencoded, json->u.object.values[1].value->u.string.ptr);
-  free(urlencoded);
+		printf("\x1b[0;0H");
+		printf("----------------------\n");
+		printf("|      Twitch3ds     |\n");
+		printf("----------------------\n");
+		printf("                      \n");
+		printf("                      \n");
 
-  json_value_free(json);
+		switch(state)
+		{
+			case STATE_NONE:
+				{
+					printf("  Press A to see game list         \n");
+  				printf("  Press START to exit              \n");
+					printf("                                   \n");
+					if(kDown & KEY_A){
+            printf(" => Adquiring games list...         \n");
+            gp = getGameList(0);
+            i = 0;
+            state = STATE_GAME_SELECTING;
+          }
+				}
+				break;
+			case STATE_GAME_SELECTING:
+				{
+					printf("  Select game and use A to select:  \n");
+					printf("   -> %s                            \n", gp.g[i].name);
+					printf("                                    \n");
 
-  printf("http_download_result: %ld\n", http_request(url, (u8 **)output, &output_size));
+          if(kDown & KEY_DOWN){
+            i = (i+1) % 10;
+          }else if(kDown & KEY_UP){
+            i = (i+9) % 10;
+          }else if(kDown & KEY_A){
+            printf(" => Adquiring channels list... \n");
+            gsp = getGameStreams(gp.g[i].name);
+            i = 0;
+            state = STATE_CHANNEL_SELECTING;
+          }else{
+						printf("                                                 \n");
+					}
+				}
+				break;
+			case STATE_CHANNEL_SELECTING:
+				{
+					printf("  Select channel and A to select:  \n");
+					printf("   -> %s                           \n", gsp.s[i].name);
+					printf("                                   \n");
 
-  ptr = *output;
-  while(nextLine(&ptr, &line) != -1){}
+          if(kDown & KEY_DOWN){
+            i = (i+1) % 10;
+          }else if(kDown & KEY_UP){
+            i = (i+9) % 10;
+          }else if(kDown & KEY_A){
+            printf(" => Opening stream... \n");
+            gss = getStreamSources(gsp.s[i].name);
+            i = 0;
+            state = STATE_PLAYING;
+          }else{
+						printf("                                                 \n");
+					}
+				}
+				break;
+			case STATE_PLAYING:
+				{
+					printf("  Opening streaming                    \n");
+					printf("                                       \n");
+					printf("                                       \n");
+					printf("                                       \n");
 
+					res = openStream(&ss, gss.mobile);
+					if(res != 0){
+						printf("  Failed opening streaming             \n");
+						state = STATE_CHANNEL_SELECTING;
+						break;
+					}
 
-  printf("mobile streaming: %s \n Press start to continue\n", line);
-  waitForStart();
+					// Read frames and save first five frames to disk
+				  int i=0;
+					printf(" Start decoding...                    \n");
+				  bool stop = false;
+				  while(av_read_frame(ss.pFormatCtx, &ss.packet)>=0 && !stop) {
+				    // Is this a packet from the video stream?
+				    if(ss.packet.stream_index==ss.videoStream) {
+				      // Decode video frame
+				      err = avcodec_decode_video2(ss.pCodecCtx, ss.pFrame, &frameFinished, &ss.packet);
+				      if (err <= 0)printf("decode error\n");
 
-  // Register all formats and codecs
-  av_register_all();
-  avformat_network_init();
+				      // Did we get a video frame?
+				      if(frameFinished) {
+				        err = av_frame_get_decode_error_flags(ss.pFrame);
+				        if (err)
+				        {
+				            char buf[100];
+				            av_strerror(err, buf, 100);
+				            continue;
+				        }
 
-  //streaming init
+				        /*******************************
+				         * Conversion of decoded frame
+				         *******************************/
+				        colorConvert(&ss);
 
-  memset(&ss, 0, sizeof(ss));
-  ss.videoStream = -1;
-  ss.audioStream = -1;
-  ss.renderGpu = false;
-  ss.convertColorMethod = CONVERT_COL_Y2R; // TODO : check if the format is supported
-  ss.pFormatCtx = avformat_alloc_context();
+				        /***********************
+				         * Display of the frame
+				         ***********************/
 
-  // Open video file
-  if(avformat_open_input(&ss.pFormatCtx, line, NULL, NULL)!=0){
-    printf("Couldn't open stream\n");
-    waitForStartAndExit();
-    return 0; // Couldn't open file
-  }
+				         if (ss.renderGpu)
+				         {
+				             gpuRenderFrame(&ss);
+				         }
+				         else
+				         {
+				           display(ss.outFrame);
+				           gfxSwapBuffers();
+				         }
 
-  // Retrieve stream information
-  if(avformat_find_stream_info(ss.pFormatCtx, NULL)<0){
-    printf("Couldn't find stream information\n");
-    waitForStartAndExit();
-    return 0; // Couldn't open file
-  }
+				        hidScanInput();
+				        u32 kDown = hidKeysDown();
+				        if (kDown & KEY_B)
+				            stop = true; // break in order to return to hbmenu
+				        if (i % 50 == 0)printf("frame %d\n", i);
+				        i++;
+				      }
+				    }
+						// Free the packet that was allocated by av_read_frame
+						av_free_packet(&ss.packet);
+					}
 
-  // Dump information about file onto standard error
-  av_dump_format(ss.pFormatCtx, 0, line, 0);
+					// Free the YUV frame
+					av_free(ss.pFrame);
+					av_free(ss.outFrame);
 
-  // Find the first video stream
-  ss.videoStream=-1;
-  for(i=0; i<ss.pFormatCtx->nb_streams; i++)
-  if(ss.pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
-    ss.videoStream=i;
-    break;
-  }
-  if(ss.videoStream==-1){
-    printf("Didn't find a video stream\n");
-    waitForStartAndExit();
-    return 0; // Couldn't open file
-  }
+					// Close the codec
+					avcodec_close(ss.pCodecCtx);
+					avcodec_close(ss.pCodecCtxOrig);
 
-  if (video_open_stream(&ss)){
-    printf("Couldn't open video stream\n");
-    waitForStartAndExit();
-    return 0; // Couldn't open file
-  }else{
-    printf("Video stream opened\n");
-  }
+					// Close the video file
+					avformat_close_input(&ss.pFormatCtx);
+					exitColorConvert(&ss);
+					state = STATE_CHANNEL_SELECTING;
+			  }
+				break;
 
-  // Allocate video frame
-  ss.pFrame=av_frame_alloc();
-  // Allocate an AVFrame structure
-  ss.outFrame = av_frame_alloc();
+		}
 
-  ss.outFrame->width = next_pow2(ss.pCodecCtx->width);
-  ss.outFrame->height = next_pow2(ss.pCodecCtx->height);
+		if (kDown & KEY_START) break;
 
-  printf("Width: %i OutW: %i\n", ss.pCodecCtx->width,ss.outFrame->width);
-  printf("Height: %i OutH: %i\n", ss.pCodecCtx->height,ss.outFrame->height);
-  ss.renderGpu = true;
+		gspWaitForVBlank();
+	}
 
-  if (ss.renderGpu)ss.out_bpp = 4;
-  else if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES) ss.out_bpp = 3;
-  else if (gfxGetScreenFormat(GFX_TOP) == GSP_RGBA8_OES)ss.out_bpp = 4;
-  ss.outFrame->linesize[0] = ss.outFrame->width * ss.out_bpp;
-  ss.outFrame->data[0] = linearMemAlign(ss.outFrame->width * ss.outFrame->height * ss.out_bpp, 0x80);//RGBA next_pow2(width) x 1024 texture
-
-  printf("Conversion input prepared...\n");
-
-  if (initColorConverter(&ss) < 0)
-  {
-      printf("Couldn't init color converter\n");
-      exitColorConvert(&ss);
-      waitForStartAndExit();
-      return 0; // Couldn't open file
-  }
-
-  // Read frames and save first five frames to disk
-  i=0;
-  bool stop = false;
-
-  printf("Start decoding...\n");
-
-  while(av_read_frame(ss.pFormatCtx, &ss.packet)>=0 && !stop) {
-    // Is this a packet from the video stream?
-    if(ss.packet.stream_index==ss.videoStream) {
-      // Decode video frame
-      err = avcodec_decode_video2(ss.pCodecCtx, ss.pFrame, &frameFinished, &ss.packet);
-      if (err <= 0)printf("decode error\n");
-
-      // Did we get a video frame?
-      if(frameFinished) {
-        err = av_frame_get_decode_error_flags(ss.pFrame);
-        if (err)
-        {
-            char buf[100];
-            av_strerror(err, buf, 100);
-            continue;
-        }
-
-        /*******************************
-         * Conversion of decoded frame
-         *******************************/
-        colorConvert(&ss);
-
-        /***********************
-         * Display of the frame
-         ***********************/
-
-         if (ss.renderGpu)
-         {
-             gpuRenderFrame(&ss);
-         }
-         else
-         {
-           display(ss.outFrame);
-           gfxSwapBuffers();
-         }
-
-        hidScanInput();
-        u32 kDown = hidKeysDown();
-        if (kDown & KEY_START)
-            stop = true; // break in order to return to hbmenu
-        if (i % 50 == 0)printf("frame %d\n", i);
-        i++;
-      }
-    }
-
-    // Free the packet that was allocated by av_read_frame
-    av_free_packet(&ss.packet);
-  }
-
-  // Free the YUV frame
-  av_free(ss.pFrame);
-  av_free(ss.outFrame);
-
-  // Close the codec
-  avcodec_close(ss.pCodecCtx);
-  avcodec_close(ss.pCodecCtxOrig);
-
-  // Close the video file
-  avformat_close_input(&ss.pFormatCtx);
-  exitColorConvert(&ss);
 
   waitForStartAndExit();
   return 0;

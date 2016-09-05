@@ -6,6 +6,7 @@
 #pragma once
 
 #include "video.h"
+#include "stream.h"
 #include <3ds.h>
 
 int initColorConverter(StreamState* ss);
