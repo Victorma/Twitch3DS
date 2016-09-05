@@ -30,12 +30,16 @@ Result openStream(StreamState * ss, char * url){
 
   // Find the first video stream
   ss->videoStream=-1;
-  for(i=0; i<ss->pFormatCtx->nb_streams; i++)
-  if(ss->pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
-    ss->videoStream=i;
-    break;
+  for(i=0; i<ss->pFormatCtx->nb_streams; i++){
+    if(ss->pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO)ss->videoStream=i;
+    else if(ss->pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_AUDIO) ss->audioStream=i;
   }
+
   if(ss->videoStream==-1){
+    printf("Didn't find a video stream\n");
+    return -1; // Couldn't open file
+  }
+  if(ss->audioStream==-1){
     printf("Didn't find a video stream\n");
     return -1; // Couldn't open file
   }
@@ -47,8 +51,17 @@ Result openStream(StreamState * ss, char * url){
     printf("Video stream opened\n");
   }
 
+  if (audio_open_stream(ss)){
+    printf("Couldn't open audio stream\n");
+    return -1; // Couldn't open file
+  }else{
+    printf("Video stream opened\n");
+  }
+
   // Allocate video frame
   ss->pFrame=av_frame_alloc();
+  // Allocate audio frame
+  ss->aFrame=av_frame_alloc();
   // Allocate an AVFrame structure
   ss->outFrame = av_frame_alloc();
 

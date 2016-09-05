@@ -10,5 +10,6 @@
 #include "stream.h"
 
 int video_open_stream(StreamState *ss);
+int video_decode_frame(StreamState * ss);
 
 void display(AVFrame *pFrame);

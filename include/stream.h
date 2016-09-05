@@ -22,10 +22,19 @@ typedef struct StreamState {
     AVCodecContext    *pCodecCtx ;
     AVCodec           *pCodec ;
 
+    // audio codec
+    AVCodecContext    *aCodecCtxOrig;
+    AVCodecContext    *aCodecCtx;
+    AVCodec           *aCodec ;
+
     // video frame
     AVFrame           *pFrame ;
     AVFrame           *outFrame;// 1024x1024 texture
     u16               out_bpp;
+
+    // audio frame
+    AVFrame           *aFrame ;
+
     AVPacket          packet;
     struct SwsContext *sws_ctx ;
     CONVERT_COLOR_METHOD convertColorMethod;
@@ -36,6 +45,7 @@ typedef struct StreamState {
 
 
 #include "video.h"
+#include "audio.h"
 #include "color_converter.h"
 
 Result openStream(StreamState * ss, char * url);

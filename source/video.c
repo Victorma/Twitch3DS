@@ -6,7 +6,12 @@
 #include <3ds.h>
 #include <3ds/gfx.h>
 
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+
 #include "video.h"
+#include "gpu.h"
 
 
 int video_open_stream(StreamState *ss)
@@ -38,6 +43,43 @@ int video_open_stream(StreamState *ss)
         return -1;
     }
     return 0;
+}
+
+int video_decode_frame(StreamState * ss){
+  int frameFinished, err;
+  // Decode video frame
+  err = avcodec_decode_video2(ss->pCodecCtx, ss->pFrame, &frameFinished, &ss->packet);
+  if (err <= 0)printf("decode error\n");
+
+  // Did we get a video frame?
+  if(frameFinished) {
+    err = av_frame_get_decode_error_flags(ss->pFrame);
+    if (err)
+    {
+        char buf[100];
+        av_strerror(err, buf, 100);
+        return -1;
+    }
+    /*******************************
+     * Conversion of decoded frame
+     *******************************/
+    colorConvert(ss);
+
+    /***********************
+     * Display of the frame
+     ***********************/
+     if (ss->renderGpu)
+     {
+         gpuRenderFrame(ss);
+     }
+     else
+     {
+       display(ss->outFrame);
+       gfxSwapBuffers();
+     }
+  }
+
+  return 0;
 }
 
 void display(AVFrame *pFrame)

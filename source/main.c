@@ -267,47 +267,16 @@ int main(int argc, char *argv[])
 				  while(av_read_frame(ss.pFormatCtx, &ss.packet)>=0 && !stop) {
 				    // Is this a packet from the video stream?
 				    if(ss.packet.stream_index==ss.videoStream) {
-				      // Decode video frame
-				      err = avcodec_decode_video2(ss.pCodecCtx, ss.pFrame, &frameFinished, &ss.packet);
-				      if (err <= 0)printf("decode error\n");
-
-				      // Did we get a video frame?
-				      if(frameFinished) {
-				        err = av_frame_get_decode_error_flags(ss.pFrame);
-				        if (err)
-				        {
-				            char buf[100];
-				            av_strerror(err, buf, 100);
-				            continue;
-				        }
-
-				        /*******************************
-				         * Conversion of decoded frame
-				         *******************************/
-				        colorConvert(&ss);
-
-				        /***********************
-				         * Display of the frame
-				         ***********************/
-
-				         if (ss.renderGpu)
-				         {
-				             gpuRenderFrame(&ss);
-				         }
-				         else
-				         {
-				           display(ss.outFrame);
-				           gfxSwapBuffers();
-				         }
-
-				        hidScanInput();
-				        u32 kDown = hidKeysDown();
-				        if (kDown & KEY_B)
-				            stop = true; // break in order to return to hbmenu
-				        if (i % 50 == 0)printf("frame %d\n", i);
-				        i++;
-				      }
+							video_decode_frame(&ss);
+				    }else if(ss.packet.stream_index==ss.audioStream) {
+							audio_decode_frame(&ss);
 				    }
+
+				    hidScanInput();
+				    u32 kDown = hidKeysDown();
+				    if (kDown & KEY_B)
+				        stop = true; // break in order to return to hbmenu
+
 						// Free the packet that was allocated by av_read_frame
 						av_free_packet(&ss.packet);
 					}
