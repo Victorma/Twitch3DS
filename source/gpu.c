@@ -57,7 +57,7 @@ shaderProgram_s shader; //the program
 void setTexturePart(vertex *data, float x, float y, float u, float v)
 {
     data[1].texturecoord[0] = u;
-    data[1].texturecoord[1]=  y;
+    data[1].texturecoord[1] = y;
 
     data[2].texturecoord[0] = u;
     data[2].texturecoord[1] = v;

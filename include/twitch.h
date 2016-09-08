@@ -38,6 +38,6 @@ const int limit = 10;
 const int page_offset = 10;*/
 
 
-game_page getGameList(int page);
-game_stream_page getGameStreams(char * name);
-stream_sources getStreamSources(char * stream_name);
+Result getGameList(game_page * gp, int page);
+Result getGameStreams(game_stream_page * gsp, char * name);
+Result getStreamSources(stream_sources * ss, char * stream_name);

@@ -49,6 +49,28 @@ int audio_open_stream(StreamState *ss)
         return -1; // Error copying codec context
     }
 
+    //ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
+    //ndspChnSetRate(0, SAMPLERATE);
+
+    switch(ss->aCodecCtx->sample_fmt){
+      case AV_SAMPLE_FMT_NONE : printf("Sample_fmt is: AV_SAMPLE_FMT_NONE"); break;
+      case AV_SAMPLE_FMT_U8   : printf("Sample_fmt is: AV_SAMPLE_FMT_U8"); break;
+      case AV_SAMPLE_FMT_S16  : printf("Sample_fmt is: AV_SAMPLE_FMT_S16"); break;
+      case AV_SAMPLE_FMT_S32  : printf("Sample_fmt is: AV_SAMPLE_FMT_S32"); break;
+      case AV_SAMPLE_FMT_FLT  : printf("Sample_fmt is: AV_SAMPLE_FMT_FLT"); break;
+      case AV_SAMPLE_FMT_DBL  : printf("Sample_fmt is: AV_SAMPLE_FMT_DBL"); break;
+      case AV_SAMPLE_FMT_U8P  : printf("Sample_fmt is: AV_SAMPLE_FMT_U8P"); break;
+      case AV_SAMPLE_FMT_S16P : printf("Sample_fmt is: AV_SAMPLE_FMT_S16P"); break;
+      case AV_SAMPLE_FMT_S32P : printf("Sample_fmt is: AV_SAMPLE_FMT_S32P"); break;
+      case AV_SAMPLE_FMT_FLTP : printf("Sample_fmt is: AV_SAMPLE_FMT_FLTP"); break;
+      case AV_SAMPLE_FMT_DBLP : printf("Sample_fmt is: AV_SAMPLE_FMT_DBLP"); break;
+      case AV_SAMPLE_FMT_NB   : printf("Sample_fmt is: AV_SAMPLE_FMT_NB"); break;
+    }
+
+    // AUDIO_S16SYS == NDSP_FORMAT_STEREO_PCM16
+    // http://sdl.libsdl.narkive.com/jS8IXUBi/what-s-the-format-of-audio-s16sys
+    //ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
+
     return 0;
 }
 
@@ -72,7 +94,7 @@ int audio_decode_frame(StreamState *ss) {
             ss->aCodecCtx->sample_fmt,
             1
         );
-      printf("Got audio!");
+      //printf("Got audio!");
       //memcpy(is->audio_buf, is->audio_frame.data[0], data_size);
   }
 /*  is->audio_pkt_data += len1;
@@ -87,6 +109,10 @@ int audio_decode_frame(StreamState *ss) {
 
 void audio_close_stream(StreamState *ss)
 {
-    avcodec_free_context(&ss->aCodecCtx);
+    // Free the audio frame
+    av_free(ss->aFrame);
+
+    // Close the codec
+    avcodec_close(ss->aCodecCtx);
     avcodec_close(ss->aCodecCtxOrig);
 }

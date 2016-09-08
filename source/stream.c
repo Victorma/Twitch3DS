@@ -2,7 +2,7 @@
 
 #include "util.h"
 
-Result openStream(StreamState * ss, char * url){
+Result open_stream(StreamState * ss, char * url){
   int i = 0;
 
   //streaming init
@@ -40,7 +40,7 @@ Result openStream(StreamState * ss, char * url){
     return -1; // Couldn't open file
   }
   if(ss->audioStream==-1){
-    printf("Didn't find a video stream\n");
+    printf("Didn't find a audio stream\n");
     return -1; // Couldn't open file
   }
 
@@ -55,37 +55,26 @@ Result openStream(StreamState * ss, char * url){
     printf("Couldn't open audio stream\n");
     return -1; // Couldn't open file
   }else{
-    printf("Video stream opened\n");
+    printf("Audio stream opened\n");
   }
 
-  // Allocate video frame
-  ss->pFrame=av_frame_alloc();
+
   // Allocate audio frame
   ss->aFrame=av_frame_alloc();
-  // Allocate an AVFrame structure
-  ss->outFrame = av_frame_alloc();
-
-  ss->outFrame->width = next_pow2(ss->pCodecCtx->width);
-  ss->outFrame->height = next_pow2(ss->pCodecCtx->height);
-
-  printf("Width: %i OutW: %i\n", ss->pCodecCtx->width,ss->outFrame->width);
-  printf("Height: %i OutH: %i\n", ss->pCodecCtx->height,ss->outFrame->height);
-  ss->renderGpu = true;
-
-  if (ss->renderGpu)ss->out_bpp = 4;
-  else if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES) ss->out_bpp = 3;
-  else if (gfxGetScreenFormat(GFX_TOP) == GSP_RGBA8_OES)ss->out_bpp = 4;
-  ss->outFrame->linesize[0] = ss->outFrame->width * ss->out_bpp;
-  ss->outFrame->data[0] = linearMemAlign(ss->outFrame->width * ss->outFrame->height * ss->out_bpp, 0x80);//RGBA next_pow2(width) x 1024 texture
-
-  printf("Conversion input prepared...\n");
-
-  if (initColorConverter(ss) < 0)
-  {
-      printf("Couldn't init color converter\n");
-      exitColorConvert(ss);
-      return -1; // Couldn't open file
-  }
 
   return 0;
+}
+
+void close_stream(StreamState * ss){
+
+  if(ss->videoStream != -1){
+    video_close_stream(ss);
+  }
+
+  if(ss->audioStream != -1){
+    audio_close_stream(ss);
+  }
+
+  // Close the stream
+  avformat_close_input(&ss->pFormatCtx);
 }

@@ -12,5 +12,5 @@
 int initColorConverter(StreamState* ss);
 
 int colorConvert(StreamState* ss);
-
+ 
 int exitColorConvert(StreamState* ss);

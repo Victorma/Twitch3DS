@@ -48,4 +48,5 @@ typedef struct StreamState {
 #include "audio.h"
 #include "color_converter.h"
 
-Result openStream(StreamState * ss, char * url);
+Result open_stream(StreamState * ss, char * url);
+void close_stream(StreamState * ss);

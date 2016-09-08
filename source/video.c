@@ -14,6 +14,8 @@
 #include "gpu.h"
 
 
+const bool USE_GPU = true;
+
 int video_open_stream(StreamState *ss)
 {
     if (ss->videoStream == -1)
@@ -42,7 +44,49 @@ int video_open_stream(StreamState *ss)
         printf("Could not open codec\n");
         return -1;
     }
+
+    // Allocate video frame
+    ss->pFrame=av_frame_alloc();
+
+    // Allocate an AVFrame structure
+    ss->outFrame = av_frame_alloc();
+    ss->outFrame->width = next_pow2(ss->pCodecCtx->width);
+    ss->outFrame->height = next_pow2(ss->pCodecCtx->height);
+
+    printf("Width: %i OutW: %i\n", ss->pCodecCtx->width,ss->outFrame->width);
+    printf("Height: %i OutH: %i\n", ss->pCodecCtx->height,ss->outFrame->height);
+
+    ss->renderGpu = USE_GPU;
+
+    // bpp config
+    if (ss->renderGpu)ss->out_bpp = 4;
+    else if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES) ss->out_bpp = 3;
+    else if (gfxGetScreenFormat(GFX_TOP) == GSP_RGBA8_OES)ss->out_bpp = 4;
+    ss->outFrame->linesize[0] = ss->outFrame->width * ss->out_bpp;
+    ss->outFrame->data[0] = linearMemAlign(ss->outFrame->width * ss->outFrame->height * ss->out_bpp, 0x80);//RGBA next_pow2(width) x 1024 texture
+
+    printf("Conversion input prepared...\n");
+
+    if (initColorConverter(ss) < 0)
+    {
+        printf("Couldn't init color converter\n");
+        exitColorConvert(ss);
+        return -1; // Couldn't open file
+    }
+
     return 0;
+}
+
+void video_close_stream(StreamState *ss){
+		// Free the YUV frame
+		av_free(ss->pFrame);
+		av_free(ss->outFrame);
+
+		// Close the codec
+		avcodec_close(ss->pCodecCtx);
+		avcodec_close(ss->pCodecCtxOrig);
+
+		exitColorConvert(ss);
 }
 
 int video_decode_frame(StreamState * ss){
@@ -88,7 +132,7 @@ void display(AVFrame *pFrame)
 //    gfxSwapBuffers();
 
     int i, j, c;
-    const int width = 400 <= pFrame->width ? 400 : pFrame->width;
+    const int width  = 400 <= pFrame->width ? 400  : pFrame->width;
     const int height = 240 <= pFrame->height ? 240 : pFrame->height;
     const int fwidth = pFrame->width;
     if (gfxGetScreenFormat(GFX_TOP) == GSP_BGR8_OES)
@@ -110,7 +154,7 @@ void display(AVFrame *pFrame)
     else if (gfxGetScreenFormat(GFX_TOP) == GSP_RGBA8_OES)
     {
 
-        u32 *const src = (u32 *) pFrame->data[0];
+        u32 *const src     = (u32 *) pFrame->data[0];
         u32 *const fbuffer = (u32 *) gfxGetFramebuffer(GFX_TOP, GFX_LEFT, 0, 0);
         for (i = 0; i < width; ++i)
         {

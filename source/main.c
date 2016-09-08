@@ -97,6 +97,8 @@ void initServices()
   int ret;
 
   gfxInitDefault();
+	ndspInit();
+	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
 
   // Register all formats and codecs
   av_register_all();
@@ -139,6 +141,7 @@ void exitServices()
   fclose(lf);
   socExit();
   gpuExit();
+	ndspExit();
   gfxExit();
 }
 // ---------------------------------------------------------------------------
@@ -154,24 +157,19 @@ void waitForStartAndExit()
 int main(int argc, char *argv[])
 // ---------------------------------------------------------------------------
 {
-  int             i, videoStream, err;
-  int             frameFinished;
-  char line[] ="null";
+  int i;
 
-  Result res = -1;
+  Result res                = -1;
 
-  StreamState  ss;
+  StreamState ss;
   game_page gp;
   game_stream_page gsp;
   stream_sources gss;
 
-  AVDictionary    *optionsDict = NULL;
-
-  state_t state = STATE_NONE;
+  state_t state             = STATE_NONE;
 
   initServices();
 
-	int total = 0;
 
 	// Main loop
 	while (aptMainLoop())
@@ -197,10 +195,14 @@ int main(int argc, char *argv[])
   				printf("  Press START to exit              \n");
 					printf("                                   \n");
 					if(kDown & KEY_A){
-            printf(" => Adquiring games list...         \n");
-            gp = getGameList(0);
-            i = 0;
-            state = STATE_GAME_SELECTING;
+            printf(" => Adquiring games list...         ");
+	          if(getGameList(&gp, 0) != 0){
+	            printf(" ERROR! \n");
+						}else{
+	            printf(" OK! \n");
+	            i = 0;
+	            state = STATE_GAME_SELECTING;
+						}
           }
 				}
 				break;
@@ -215,10 +217,14 @@ int main(int argc, char *argv[])
           }else if(kDown & KEY_UP){
             i = (i+9) % 10;
           }else if(kDown & KEY_A){
-            printf(" => Adquiring channels list... \n");
-            gsp = getGameStreams(gp.g[i].name);
-            i = 0;
-            state = STATE_CHANNEL_SELECTING;
+            printf(" => Adquiring channels list... ");
+            if(getGameStreams(&gsp, gp.g[i].name) != 0){
+	            printf(" ERROR! \n");
+						}else{
+	            printf(" OK! \n");
+	            i = 0;
+	            state = STATE_CHANNEL_SELECTING;
+						}
           }else{
 						printf("                                                 \n");
 					}
@@ -235,10 +241,14 @@ int main(int argc, char *argv[])
           }else if(kDown & KEY_UP){
             i = (i+9) % 10;
           }else if(kDown & KEY_A){
-            printf(" => Opening stream... \n");
-            gss = getStreamSources(gsp.s[i].name);
-            i = 0;
-            state = STATE_PLAYING;
+            printf(" => Opening stream... ");
+            if(getStreamSources(&gss, gsp.s[i].name) != 0){
+	            printf(" ERROR! \n");
+						}else{
+	            printf(" OK! \n");
+	            i = 0;
+	            state = STATE_PLAYING;
+						}
           }else if(kDown & KEY_B){
             state = STATE_GAME_SELECTING;
           }else{
@@ -253,7 +263,7 @@ int main(int argc, char *argv[])
 					printf("                                       \n");
 					printf("                                       \n");
 
-					res = openStream(&ss, gss.mobile);
+					res = open_stream(&ss, gss.mobile);
 					if(res != 0){
 						printf("  Failed opening streaming             \n");
 						state = STATE_CHANNEL_SELECTING;
@@ -261,16 +271,15 @@ int main(int argc, char *argv[])
 					}
 
 					// Read frames and save first five frames to disk
-				  int i=0;
 					printf(" Start decoding...                    \n");
 				  bool stop = false;
 				  while(av_read_frame(ss.pFormatCtx, &ss.packet)>=0 && !stop) {
 				    // Is this a packet from the video stream?
 				    if(ss.packet.stream_index==ss.videoStream) {
 							video_decode_frame(&ss);
-				    }else if(ss.packet.stream_index==ss.audioStream) {
+				    }/*else if(ss.packet.stream_index==ss.audioStream) {
 							audio_decode_frame(&ss);
-				    }
+				    }*/
 
 				    hidScanInput();
 				    u32 kDown = hidKeysDown();
@@ -281,17 +290,8 @@ int main(int argc, char *argv[])
 						av_free_packet(&ss.packet);
 					}
 
-					// Free the YUV frame
-					av_free(ss.pFrame);
-					av_free(ss.outFrame);
+					close_stream(&ss);
 
-					// Close the codec
-					avcodec_close(ss.pCodecCtx);
-					avcodec_close(ss.pCodecCtxOrig);
-
-					// Close the video file
-					avformat_close_input(&ss.pFormatCtx);
-					exitColorConvert(&ss);
 					state = STATE_CHANNEL_SELECTING;
 					printf("                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ");
 					printf("                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ");
