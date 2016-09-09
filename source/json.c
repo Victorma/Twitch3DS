@@ -1010,6 +1010,8 @@ void json_value_free (json_value * value)
 }
 
 json_value * json_object_find_value(json_value * v, char * name){
+  if(v == NULL)
+    return NULL;
   int i;
   for(i = 0; i < v->u.object.length; i++){
     if(strcmp(v->u.object.values[i].name, name) == 0){

@@ -33,10 +33,19 @@ typedef struct StreamState {
     u16               out_bpp;
 
     // audio frame
-    AVFrame           *aFrame ;
+    AVFrame           * aFrame ;
+    int               linesize;
+    int               nb_samples;
+
+	  int               fillBlock;
+    ndspWaveBuf       waveBuf[10];
+    u32               *audioBuffer;
 
     AVPacket          packet;
     struct SwsContext *sws_ctx ;
+    struct SwrContext *spl_swr_ctx;
+    size_t stream_offset;
+
     CONVERT_COLOR_METHOD convertColorMethod;
     Y2RU_ConversionParams params;
     Handle end_event;

@@ -25,9 +25,9 @@
 #include "stream.h"
 
 #define SOC_ALIGN       0x1000
-#define SOC_BUFFERSIZE  0x1000000
+#define SOC_BUFFERSIZE  0x500000
 
-u32 __stacksize__ = 0x40000;
+u32 __stacksize__ = 0x20000;
 
 typedef enum
 {
@@ -98,7 +98,7 @@ void initServices()
 
   gfxInitDefault();
 	ndspInit();
-	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
+	ndspSetOutputMode(NDSP_OUTPUT_MONO);
 
   // Register all formats and codecs
   av_register_all();
@@ -111,8 +111,8 @@ void initServices()
   //gfxSet3D(false);//We will not be using the 3D mode in this example
 
   printf("Initializing the console...\n");
-  lf = fopen("./twitch3ds.log","w+");
-  consoleInit(GFX_BOTTOM, NULL, lf);
+  //lf = fopen("./twitch3ds.log","w+");
+  consoleInit(GFX_BOTTOM, NULL, NULL);
 
   printf("Initializing the network...\n");
   // allocate buffer for SOC service
@@ -138,7 +138,7 @@ void exitServices()
 // ---------------------------------------------------------------------------
 {
 
-  fclose(lf);
+  //fclose(lf);
   socExit();
   gpuExit();
 	ndspExit();
@@ -273,21 +273,26 @@ int main(int argc, char *argv[])
 					// Read frames and save first five frames to disk
 					printf(" Start decoding...                    \n");
 				  bool stop = false;
-				  while(av_read_frame(ss.pFormatCtx, &ss.packet)>=0 && !stop) {
-				    // Is this a packet from the video stream?
-				    if(ss.packet.stream_index==ss.videoStream) {
-							video_decode_frame(&ss);
-				    }/*else if(ss.packet.stream_index==ss.audioStream) {
-							audio_decode_frame(&ss);
-				    }*/
+				  while(!stop) {
+						res = av_read_frame(ss.pFormatCtx, &ss.packet);
+						if(res >= 0){
 
-				    hidScanInput();
-				    u32 kDown = hidKeysDown();
-				    if (kDown & KEY_B)
-				        stop = true; // break in order to return to hbmenu
+					    // Is this a packet from the video stream?
+					    /*if(ss.packet.stream_index==ss.videoStream) {
+								video_decode_frame(&ss);
+					    }else */if(ss.packet.stream_index==ss.audioStream) {
+								audio_decode_frame(&ss);
+					    }
 
-						// Free the packet that was allocated by av_read_frame
-						av_free_packet(&ss.packet);
+					    hidScanInput();
+					    u32 kDown = hidKeysDown();
+					    if (kDown & KEY_B)
+					        stop = true; // break in order to return to hbmenu
+							// Free the packet that was allocated by av_read_frame
+							av_free_packet(&ss.packet);
+						}else{
+							printf("Error code: %i\n", res);
+						}
 					}
 
 					close_stream(&ss);

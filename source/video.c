@@ -22,9 +22,9 @@ int video_open_stream(StreamState *ss)
         return -1;
 
     // Get a pointer to the codec context for the video stream
-    ss->pCodecCtxOrig = ss->pFormatCtx->streams[ss->videoStream]->codec;
+    ss->pCodecCtx = ss->pFormatCtx->streams[ss->videoStream]->codec;
     // Find the decoder for the video stream
-    ss->pCodec = avcodec_find_decoder(ss->pCodecCtxOrig->codec_id);
+    ss->pCodec = avcodec_find_decoder(ss->pCodecCtx->codec_id);
     if (ss->pCodec == NULL)
     {
         fprintf(stderr, "Unsupported video codec!\n");
@@ -32,12 +32,12 @@ int video_open_stream(StreamState *ss)
     }
 
     // Copy context
-    ss->pCodecCtx = avcodec_alloc_context3(ss->pCodec);
+    /*ss->pCodecCtx = avcodec_alloc_context3(ss->pCodec);
     if (avcodec_copy_context(ss->pCodecCtx, ss->pCodecCtxOrig) != 0)
     {
         fprintf(stderr, "Couldn't copy video codec context");
         return -1; // Error copying codec context
-    }
+    }*/
     // Open codec
     if (avcodec_open2(ss->pCodecCtx, ss->pCodec, NULL) < 0)
     {

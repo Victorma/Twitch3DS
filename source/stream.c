@@ -59,9 +59,6 @@ Result open_stream(StreamState * ss, char * url){
   }
 
 
-  // Allocate audio frame
-  ss->aFrame=av_frame_alloc();
-
   return 0;
 }
 

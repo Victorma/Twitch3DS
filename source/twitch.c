@@ -57,6 +57,11 @@ Result getGameStreams(game_stream_page * gsp, char * name){
   }
 
   json = json_parse(*output, output_size);
+  if(json_null == json || json == NULL){
+    printf("Error parsing JSON\n");
+    return -1;
+  }
+
   // streamarray = response["top"=2]
   json_value * streamsarray = json_object_find_value(json, "streams");
   if(streamsarray != NULL){
